@@ -8,4 +8,13 @@ verification and reset-password link to the users.
     mvn clean install
 
 # Configuration
+
+
+* Database configuration
+    * ${DB_HOST} - the database url
+    * ${DB_PORT} - the database port
+    * ${DB_NAME} - the database name
+    * ${DB_USER} - the database username
+    * ${DB_PASSWORD} - the database password
+
  
