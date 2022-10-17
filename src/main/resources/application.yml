@@ -5,9 +5,30 @@ spring:
     name: user-manager
   profiles:
     include: local, default
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: none
+
 eureka:
   instance:
     instance-id: ${spring.application.name}:${random.uuid)}
+    hostname: ${USER_MANAGER_DOMAIN_NAME}
+    nonSecurePort: 80
   client:
     service-url:
-      defaultZone: http://eureka:password@localhost:8761/eureka
+      defaultZone: ${EUREKA_URL}/eureka/
+  password: ${EUREKA_USER_PASSWORD}
+
+security:
+  user:
+    password: ${eureka.password}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
