@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +28,10 @@ public class UserService {
         UserDetails userDetails = mapToUserDetails(userInfo);
         UserDetails newUser = userRepository.save(userDetails);
         List<Contact> contacts = contactService.saveContacts(getUserContacts(newUser, userInfo.email(), userInfo.phone()));
-        List<Address> addresses = addressService.saveAddress(getUserAddress(newUser, userInfo.address()));
+        List<Address> addresses = new ArrayList<>();
+        if (userInfo.address() != null) {
+            addresses.addAll(addressService.saveAddress(getUserAddress(newUser, userInfo.address())));
+        }
 
         return mapToUserDetailsInfo(newUser, contacts, addresses);
     }
