@@ -13,6 +13,7 @@ import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.enums.ContactType;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
@@ -40,14 +41,18 @@ public class UserService {
             throw new RegistrationException("User registration failed. " + response.getStatusInfo().getReasonPhrase());
         }
         UserDetails userDetails = mapToUserDetails(userInfo);
-        UserDetails newUser = userRepository.save(userDetails);
-        List<Contact> contacts = contactService.saveContacts(getUserContacts(newUser, userInfo.email(), userInfo.phone()));
-        List<Address> addresses = new ArrayList<>();
-        if (userInfo.address() != null) {
-            addresses.addAll(addressService.saveAddress(getUserAddress(newUser, userInfo.address())));
+        try {
+            UserDetails newUser = userRepository.save(userDetails);
+            List<Contact> contacts = contactService.saveContacts(getUserContacts(newUser, userInfo.email(), userInfo.phone()));
+            List<Address> addresses = new ArrayList<>();
+            if (userInfo.address() != null) {
+                addresses.addAll(addressService.saveAddress(getUserAddress(newUser, userInfo.address())));
+            }
+            return mapToUserDetailsInfo(newUser, contacts, addresses);
+        } catch (Exception ex) {
+            deleteKeycloakUser(userDetails.getAccountUuid());
+            throw new RegistrationException("Something went wrong. User registration failed:" + ex.getMessage());
         }
-
-        return mapToUserDetailsInfo(newUser, contacts, addresses);
     }
 
     public UserDetailsResponse getUser(String userName) {
@@ -59,6 +64,7 @@ public class UserService {
     public void deleteUser(String userName) {
         UserDetails userDetails = userRepository.findUserDetailsByUserName(userName)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Username %s not found.", userName)));
+        deleteKeycloakUser(userDetails.getAccountUuid());
         userRepository.delete(userDetails);
     }
 
@@ -127,8 +133,11 @@ public class UserService {
         userDetails.setLastName(userInfo.lastName());
         userDetails.setFirstName(userInfo.firstName());
         userDetails.setUserName(userInfo.email());
-        //TODO: update with Keycloak uuid - after Keycloak save it's performed
-        userDetails.setAccountUuid(UUID.randomUUID().toString());
+        var keycloakUser = getKeycloakUser(userInfo.email());
+        if (keycloakUser.isEmpty()) {
+            throw new RegistrationException("User not found.");
+        }
+        userDetails.setAccountUuid(keycloakUser.get().getId());
 
         return userDetails;
     }
@@ -169,5 +178,32 @@ public class UserService {
         contact.setUser(userDetails);
 
         return contact;
+    }
+
+    private Optional<UserRepresentation> getKeycloakUser(String userName) {
+        return keycloakClient.getKeycloakRealmUsersResources()
+                .search(userName, true)
+                .stream()
+                .findFirst();
+    }
+
+    private void deleteKeycloakUser(String userId) {
+        keycloakClient.getKeycloakRealmUsersResources()
+                .get(userId)
+                .remove();
+    }
+
+    private void sendResetPasswordLink(String userId) {
+        keycloakClient.getKeycloakRealmUsersResources()
+                .get(userId)
+                .executeActionsEmail(Arrays.asList("UPDATE_PASSWORD"));
+    }
+
+    private void sendVerificationPasswordLink(String userId) {
+        UserResource user = keycloakClient.getKeycloakRealmUsersResources()
+                .get(userId);
+        if (Boolean.FALSE.equals(user.toRepresentation().isEmailVerified())) {
+            user.sendVerifyEmail();
+        }
     }
 }

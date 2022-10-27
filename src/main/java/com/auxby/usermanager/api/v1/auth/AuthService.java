@@ -15,7 +15,6 @@ public class AuthService {
     private final UserService userService;
 
     public AuthResponse login(AuthInfo authInfo) {
-        //TODO: use Keycloak to authenticate and get user token
         UserDetailsResponse userDetailsInfo = userService.getUser(authInfo.email());
         return new AuthResponse(String.format("%s-%s", userDetailsInfo.email(), UUID.randomUUID()));
     }
