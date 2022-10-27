@@ -24,14 +24,14 @@ public class UserController {
     }
 
     @GetMapping
-    public UserDetailsResponse getUserInfo(@RequestParam String userName) {
+    public UserDetailsResponse getUserInfo(@RequestParam String email) {
         log.info("GET - get user.");
-        return userService.getUser(userName);
+        return userService.getUser(email);
     }
 
     @DeleteMapping
-    public void deleteUser(@RequestParam String userName) {
+    public void deleteUser(@RequestParam String email) {
         log.info("DELETE - delete user.");
-        userService.deleteUser(userName);
+        userService.deleteUser(email);
     }
 }
