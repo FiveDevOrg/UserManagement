@@ -1,6 +1,7 @@
 package com.auxby.usermanager.exception.handler;
 
 import com.auxby.usermanager.exception.RegistrationException;
+import com.auxby.usermanager.exception.SignInException;
 import com.auxby.usermanager.exception.response.ExceptionResponse;
 import org.postgresql.util.PSQLException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -46,6 +47,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = RegistrationException.class)
     protected ResponseEntity<ExceptionResponse> handleRegistrationException(RegistrationException ex) {
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
+                .body(new ExceptionResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(value = SignInException.class)
+    protected ResponseEntity<ExceptionResponse> handleSignInException(SignInException ex) {
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
                 .body(new ExceptionResponse(ex.getMessage()));
     }
