@@ -12,7 +12,8 @@ import javax.persistence.*;
 @EqualsAndHashCode(callSuper = true)
 public class Address extends AuxbyBaseEntity {
     private String city;
-    private String county;
+    @Column(name = "country")
+    private String country;
     private String street;
     @ManyToOne(fetch = FetchType.LAZY)
     private UserDetails user;

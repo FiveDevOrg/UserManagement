@@ -3,7 +3,7 @@ package com.auxby.usermanager.api.v1.auth;
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
 import com.auxby.usermanager.api.v1.user.UserService;
-import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
+import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ public class AuthService {
 
     public AuthResponse login(AuthInfo authInfo) {
         //TODO: use Keycloak to authenticate and get user token
-        UserDetailsInfo userDetailsInfo = userService.getUser(authInfo.userName());
-        return new AuthResponse(String.format("%s-%s", userDetailsInfo.userName(), UUID.randomUUID()));
+        UserDetailsResponse userDetailsInfo = userService.getUser(authInfo.email());
+        return new AuthResponse(String.format("%s-%s", userDetailsInfo.email(), UUID.randomUUID()));
     }
 }

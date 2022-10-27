@@ -1,6 +1,7 @@
 package com.auxby.usermanager.api.v1.user;
 
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
+import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import com.auxby.usermanager.utils.constant.AppConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,13 +18,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public UserDetailsInfo createUser(@Valid @RequestBody UserDetailsInfo detailsInfo) {
+    public UserDetailsResponse createUser(@Valid @RequestBody UserDetailsInfo detailsInfo) {
         log.info("POST - create new user");
         return userService.createUser(detailsInfo);
     }
 
     @GetMapping
-    public UserDetailsInfo getUserInfo(@RequestParam String userName) {
+    public UserDetailsResponse getUserInfo(@RequestParam String userName) {
         log.info("GET - get user.");
         return userService.getUser(userName);
     }

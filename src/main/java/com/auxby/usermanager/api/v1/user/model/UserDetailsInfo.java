@@ -11,7 +11,7 @@ import static com.auxby.usermanager.utils.constant.AppConstant.VALID_PHONE_REGEX
 
 public record UserDetailsInfo(@NotBlank(message = "Last name is mandatory.") String lastName,
                               @NotBlank(message = "First name is mandatory.") String firstName,
-                              @NotBlank(message = "Username is mantadory.") String userName,
+                              @NotBlank(message = "Password is mantadory.") String password,
                               @NotBlank(message = "Email address is mandatory.")
                               @Pattern(regexp = VALID_EMAIL_REGEX, message = "Invalid email.") String email,
                               AddressInfo address,

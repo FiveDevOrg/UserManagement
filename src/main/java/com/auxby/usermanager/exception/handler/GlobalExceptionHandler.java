@@ -1,5 +1,8 @@
-package com.auxby.usermanager.exception;
+package com.auxby.usermanager.exception.handler;
 
+import com.auxby.usermanager.exception.RegistrationException;
+import com.auxby.usermanager.exception.response.ExceptionResponse;
+import org.postgresql.util.PSQLException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -36,7 +39,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = EntityNotFoundException.class)
-    protected ResponseEntity<Object> handleEntityNotFound(EntityNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    protected ResponseEntity<ExceptionResponse> handleEntityNotFound(EntityNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ExceptionResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(value = RegistrationException.class)
+    protected ResponseEntity<ExceptionResponse> handleRegistrationException(RegistrationException ex) {
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
+                .body(new ExceptionResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(value = PSQLException.class)
+    protected ResponseEntity<ExceptionResponse> handleSQLException(PSQLException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ExceptionResponse(ex.getMessage()));
     }
 }
