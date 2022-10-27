@@ -29,6 +29,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserService {
     private static final String UNKNOWN = "Unknown";
+    private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
     private final UserRepository userRepository;
     private final ContactService contactService;
     private final AddressService addressService;
@@ -48,6 +49,7 @@ public class UserService {
             if (userInfo.address() != null) {
                 addresses.addAll(addressService.saveAddress(getUserAddress(newUser, userInfo.address())));
             }
+            sendVerificationPasswordLink(userDetails.getAccountUuid());
             return mapToUserDetailsInfo(newUser, contacts, addresses);
         } catch (Exception ex) {
             deleteKeycloakUser(userDetails.getAccountUuid());
@@ -56,16 +58,32 @@ public class UserService {
     }
 
     public UserDetailsResponse getUser(String userName) {
-        UserDetails userDetails = userRepository.findUserDetailsByUserName(userName)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Username %s not found.", userName)));
+        UserDetails userDetails = findUser(userName);
         return mapToUserDetailsInfo(userDetails, userDetails.getContacts().stream().toList(), userDetails.getAddresses().stream().toList());
     }
 
     public void deleteUser(String userName) {
-        UserDetails userDetails = userRepository.findUserDetailsByUserName(userName)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Username %s not found.", userName)));
+        UserDetails userDetails = findUser(userName);
         deleteKeycloakUser(userDetails.getAccountUuid());
         userRepository.delete(userDetails);
+    }
+
+    public void sendResetPasswordLink(String email) {
+        UserDetails userDetails = findUser(email);
+        keycloakClient.getKeycloakRealmUsersResources()
+                .get(userDetails.getAccountUuid())
+                .executeActionsEmail(Arrays.asList(UPDATE_PASSWORD));
+    }
+
+    public void sendVerificationPasswordLink(String userId) {
+        UserResource user = keycloakClient.getKeycloakRealmUsersResources()
+                .get(userId);
+        user.sendVerifyEmail();
+    }
+
+    public UserDetails findUser(String userName) {
+        return userRepository.findUserDetailsByUserName(userName)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Username %s not found.", userName)));
     }
 
     private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo) {
@@ -191,19 +209,5 @@ public class UserService {
         keycloakClient.getKeycloakRealmUsersResources()
                 .get(userId)
                 .remove();
-    }
-
-    private void sendResetPasswordLink(String userId) {
-        keycloakClient.getKeycloakRealmUsersResources()
-                .get(userId)
-                .executeActionsEmail(Arrays.asList("UPDATE_PASSWORD"));
-    }
-
-    private void sendVerificationPasswordLink(String userId) {
-        UserResource user = keycloakClient.getKeycloakRealmUsersResources()
-                .get(userId);
-        if (Boolean.FALSE.equals(user.toRepresentation().isEmailVerified())) {
-            user.sendVerifyEmail();
-        }
     }
 }

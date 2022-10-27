@@ -17,8 +17,20 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    private AuthResponse login(@Valid @RequestBody AuthInfo authInfo) {
+    public AuthResponse login(@Valid @RequestBody AuthInfo authInfo) {
         log.info("Login user.");
         return authService.login(authInfo);
+    }
+
+    @PostMapping("/reset")
+    public void resetPassword(@RequestParam String email) {
+        log.info("Reset password");
+        authService.resetPassword(email);
+    }
+
+    @PostMapping("/resend-verification-link")
+    public void resendVerificationLink(@RequestParam String email) {
+        log.info("Resend verification link.");
+        authService.resendVerificationLink(email);
     }
 }
