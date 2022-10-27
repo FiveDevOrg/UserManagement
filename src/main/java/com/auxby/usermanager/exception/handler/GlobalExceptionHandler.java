@@ -53,7 +53,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = SignInException.class)
     protected ResponseEntity<ExceptionResponse> handleSignInException(SignInException ex) {
-        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ExceptionResponse(ex.getMessage()));
     }
 
