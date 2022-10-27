@@ -22,6 +22,9 @@ public class KeycloakClient {
     private final KeycloakProps keycloakProps;
 
     public UsersResource getKeycloakRealmUsersResources() {
+        if (keycloak == null || keycloak.isClosed()) {
+            initKeycloakClient();
+        }
         return keycloak.realm(keycloakProps.getRealm()).users();
     }
 
