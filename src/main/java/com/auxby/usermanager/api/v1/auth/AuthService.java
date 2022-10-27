@@ -53,6 +53,11 @@ public class AuthService {
         userService.sendResetPasswordLink(email);
     }
 
+    public void resendVerificationLink(String email) {
+        UserDetails user = userService.findUser(email);
+        userService.sendVerificationPasswordLink(user.getAccountUuid());
+    }
+
     private void verifyUserValidateEmailAddress(String email) {
         UserDetails user = userService.findUser(email);
         UserRepresentation userRepresentation = keycloakClient.getKeycloakRealmUsersResources()
@@ -61,10 +66,5 @@ public class AuthService {
         if (Boolean.FALSE.equals(userRepresentation.isEmailVerified())) {
             throw new UserEmailNotValidated(email);
         }
-    }
-
-    public void resendVerificationLink(String email) {
-        UserDetails user = userService.findUser(email);
-        userService.sendVerificationPasswordLink(user.getAccountUuid());
     }
 }
