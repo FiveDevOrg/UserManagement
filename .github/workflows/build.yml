@@ -69,7 +69,7 @@ jobs:
         COVERAGE=$(jq -r '.coverage' <<< "$REPORT")%
         BRANCHES=$(jq -r '.branches' <<< "$REPORT")%
         NEWLINE=$'\n'
-        BODY="## JaCoCo Test Coverage Summary Statistics${NEWLINE}* __Coverage:__ ${COVERAGE}${NEWLINE}* __Branches:__ ${BRANCHES}"
+        BODY="## JaCoCo Test Coverage ${NEWLINE}* __Coverage:__ ${COVERAGE}${NEWLINE}* __Branches:__ ${BRANCHES}"
         gh pr comment ${{github.event.pull_request.number}} -b "${BODY}"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
