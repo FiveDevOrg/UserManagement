@@ -1,8 +1,6 @@
 package com.auxby.usermanager.api.v1.user;
 
-import com.auxby.usermanager.api.v1.address.AddressService;
 import com.auxby.usermanager.api.v1.address.model.AddressInfo;
-import com.auxby.usermanager.api.v1.contact.ContactService;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import com.auxby.usermanager.config.KeycloakClient;
@@ -18,21 +16,20 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
 import javax.validation.constraints.NotBlank;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
     private static final String UNKNOWN = "Unknown";
     private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
     private final UserRepository userRepository;
-    private final ContactService contactService;
-    private final AddressService addressService;
     private final KeycloakClient keycloakClient;
 
     @Transactional
@@ -43,14 +40,16 @@ public class UserService {
         }
         UserDetails userDetails = mapToUserDetails(userInfo);
         try {
-            UserDetails newUser = userRepository.save(userDetails);
-            List<Contact> contacts = contactService.saveContacts(getUserContacts(newUser, userInfo.email(), userInfo.phone()));
-            List<Address> addresses = new ArrayList<>();
+            Set<Contact> contacts = getUserContacts(userInfo.email(), userInfo.phone());
+            contacts.forEach(userDetails::addContact);
             if (userInfo.address() != null) {
-                addresses.addAll(addressService.saveAddress(getUserAddress(newUser, userInfo.address())));
+                Address addresses = getUserAddress(userInfo.address());
+                userDetails.addAddress(addresses);
             }
+            UserDetails newUser = userRepository.save(userDetails);
             sendVerificationPasswordLink(userDetails.getAccountUuid());
-            return mapToUserDetailsInfo(newUser, contacts, addresses);
+
+            return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
         } catch (Exception ex) {
             deleteKeycloakUser(userDetails.getAccountUuid());
             throw new RegistrationException("Something went wrong. User registration failed:" + ex.getMessage());
@@ -59,13 +58,14 @@ public class UserService {
 
     public UserDetailsResponse getUser(String userName) {
         UserDetails userDetails = findUser(userName);
-        return mapToUserDetailsInfo(userDetails, userDetails.getContacts().stream().toList(), userDetails.getAddresses().stream().toList());
+        return mapToUserDetailsInfo(userDetails, userDetails.getContacts(), userDetails.getAddresses());
     }
 
+    @Transactional
     public void deleteUser(String userName) {
         UserDetails userDetails = findUser(userName);
         deleteKeycloakUser(userDetails.getAccountUuid());
-        userRepository.delete(userDetails);
+        userRepository.deleteById(userDetails.getId());
     }
 
     public void sendResetPasswordLink(String email) {
@@ -109,7 +109,7 @@ public class UserService {
         return credential;
     }
 
-    private UserDetailsResponse mapToUserDetailsInfo(UserDetails user, List<Contact> contacts, List<Address> addresses) {
+    private UserDetailsResponse mapToUserDetailsInfo(UserDetails user, Set<Contact> contacts, Set<Address> addresses) {
         String phone = getPhoneNumber(contacts);
         String email = getEmailAddress(contacts);
         Address address = addresses.stream()
@@ -123,7 +123,7 @@ public class UserService {
         return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone);
     }
 
-    private String getPhoneNumber(List<Contact> contacts) {
+    private String getPhoneNumber(Set<Contact> contacts) {
         Contact phone = contacts.stream()
                 .filter(c -> c.getType().equals(ContactType.PHONE))
                 .findFirst()
@@ -134,7 +134,7 @@ public class UserService {
         return phone.getValue();
     }
 
-    private String getEmailAddress(List<Contact> contacts) {
+    private String getEmailAddress(Set<Contact> contacts) {
         Contact email = contacts.stream()
                 .filter(c -> c.getType().equals(ContactType.EMAIL))
                 .findFirst()
@@ -160,40 +160,35 @@ public class UserService {
         return userDetails;
     }
 
-    private Set<Address> getUserAddress(UserDetails userDetails, AddressInfo address) {
-        Set<Address> addresses = new HashSet<>();
+    private Address getUserAddress(AddressInfo address) {
         Address userAddress = new Address();
-        userAddress.setUser(userDetails);
         userAddress.setCity(address.city());
         userAddress.setCountry(address.country());
         userAddress.setStreet("");
-        addresses.add(userAddress);
 
-        return addresses;
+        return userAddress;
     }
 
-    private Set<Contact> getUserContacts(UserDetails userDetails, String email, String phone) {
+    private Set<Contact> getUserContacts(String email, String phone) {
         Set<Contact> contacts = new HashSet<>();
-        contacts.add(getUserEmail(userDetails, email));
-        contacts.add(getUserPhone(userDetails, phone));
+        contacts.add(getUserEmail(email));
+        contacts.add(getUserPhone(phone));
 
         return contacts;
     }
 
-    private Contact getUserEmail(UserDetails userDetails, String email) {
+    private Contact getUserEmail(String email) {
         Contact contact = new Contact();
         contact.setType(ContactType.EMAIL);
         contact.setValue(email);
-        contact.setUser(userDetails);
 
         return contact;
     }
 
-    private Contact getUserPhone(UserDetails userDetails, String phoneNumber) {
+    private Contact getUserPhone(String phoneNumber) {
         Contact contact = new Contact();
         contact.setType(ContactType.PHONE);
         contact.setValue(phoneNumber);
-        contact.setUser(userDetails);
 
         return contact;
     }
