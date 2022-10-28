@@ -76,9 +76,13 @@ public class UserService {
     }
 
     public void sendVerificationPasswordLink(String userId) {
-        UserResource user = keycloakClient.getKeycloakRealmUsersResources()
-                .get(userId);
-        user.sendVerifyEmail();
+        try {
+            UserResource user = keycloakClient.getKeycloakRealmUsersResources()
+                    .get(userId);
+            user.sendVerifyEmail();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     public UserDetails findUser(String userName) {
