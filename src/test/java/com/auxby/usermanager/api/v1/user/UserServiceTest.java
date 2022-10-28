@@ -23,7 +23,6 @@ import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -256,6 +255,44 @@ class UserServiceTest {
         assertThrows(EntityNotFoundException.class, () -> userService.findUser("test@gmail.com"));
     }
 
+    @Test
+    void updateUserDetails_shouldSucceed() {
+        var uuid = UUID.randomUUID().toString();
+
+        when(userRepository.findUserDetailsByUserName(anyString()))
+                .thenReturn(Optional.of(mockSavedUser(uuid)));
+        var mockUserResource = mock(UserResource.class);
+        var mockRealmUserResources = mock(UsersResource.class);
+        when(keycloakClient.getKeycloakRealmUsersResources())
+                .thenReturn(mockRealmUserResources);
+        when(mockRealmUserResources.get(uuid))
+                .thenReturn(mockUserResource);
+        doNothing().when(mockUserResource).update(any());
+
+        userService.updateUser("test@email.com", getMockUserDetails(true));
+        verify(mockUserResource, times(1)).update(any());
+    }
+
+    @Test
+    void updateUserDetailsWithDifferentEmail_shouldSucceed() {
+        var uuid = UUID.randomUUID().toString();
+
+        when(userRepository.findUserDetailsByUserName(anyString()))
+                .thenReturn(Optional.of(mockSavedUser(uuid)));
+        var mockUserResource = mock(UserResource.class);
+        var mockRealmUserResources = mock(UsersResource.class);
+        when(keycloakClient.getKeycloakRealmUsersResources())
+                .thenReturn(mockRealmUserResources);
+        when(mockRealmUserResources.get(uuid))
+                .thenReturn(mockUserResource);
+        doNothing().when(mockUserResource).update(any());
+        doNothing().when(mockUserResource).sendVerifyEmail();
+
+        userService.updateUser("test2@gmail.com", getMockUserDetails(false));
+        verify(mockUserResource, times(1)).update(any());
+        verify(mockUserResource, times(1)).sendVerifyEmail();
+    }
+
     private UserDetailsInfo getMockUserDetails(boolean setAddress) {
         if (setAddress) {
             return new UserDetailsInfo("Joe", "Doe", "testPass",
@@ -291,14 +328,17 @@ class UserServiceTest {
         user.setFirstName("Joe");
         user.setLastName("Doe");
         var address = new Address();
+        address.setId(1L);
         address.setStreet("");
         address.setCity("Suceava");
         address.setCountry("Ro");
-        user.setAddresses(Set.of(address));
+        user.addAddress(address);
         var phone = new Contact();
+        phone.setId(1L);
         phone.setValue("0755444322");
         phone.setType(ContactType.PHONE);
         var email = new Contact();
+        email.setId(2L);
         email.setValue("test@gmail.com");
         email.setType(ContactType.EMAIL);
         user.setAccountUuid(randomUuid);

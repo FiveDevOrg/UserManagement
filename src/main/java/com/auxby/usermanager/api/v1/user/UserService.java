@@ -34,7 +34,7 @@ public class UserService {
 
     @Transactional
     public UserDetailsResponse createUser(UserDetailsInfo userInfo) {
-        Response response = keycloakClient.getKeycloakRealmUsersResources().create(createUserRepresentation(userInfo));
+        Response response = keycloakClient.getKeycloakRealmUsersResources().create(createUserRepresentation(userInfo, false));
         if (response.getStatus() != HttpStatus.CREATED.value()) {
             throw new RegistrationException("User registration failed. " + response.getStatusInfo().getReasonPhrase());
         }
@@ -68,6 +68,32 @@ public class UserService {
         userRepository.deleteById(userDetails.getId());
     }
 
+    @Transactional
+    public void updateUser(String userEmail, UserDetailsInfo userDetails) {
+        UserDetails user = findUser(userEmail);
+        boolean isEmailVerifiedAlready = userEmail.equals(userDetails.email());
+        keycloakClient.getKeycloakRealmUsersResources()
+                .get(user.getAccountUuid())
+                .update(createUserRepresentation(userDetails, isEmailVerifiedAlready));
+        user.setUserName(userDetails.email());
+        user.setLastName(userDetails.lastName());
+        user.setFirstName(userDetails.firstName());
+        var userAddresses = new ArrayList<>(user.getAddresses());
+        var userContacts = new ArrayList<>(user.getContacts());
+        userAddresses.forEach(user::removeAddress);
+        userContacts.forEach(user::removeContact);
+
+        Set<Contact> contacts = getUserContacts(userDetails.email(), userDetails.phone());
+        contacts.forEach(user::addContact);
+        if (userDetails.address() != null) {
+            Address addresses = getUserAddress(userDetails.address());
+            user.addAddress(addresses);
+        }
+        if (!isEmailVerifiedAlready) {
+            sendVerificationPasswordLink(user.getAccountUuid());
+        }
+    }
+
     public void sendResetPasswordLink(String email) {
         UserDetails userDetails = findUser(email);
         keycloakClient.getKeycloakRealmUsersResources()
@@ -90,10 +116,10 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Username %s not found.", userName)));
     }
 
-    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo) {
+    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo, boolean isEmailVerified) {
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setEnabled(true);
-        userRepresentation.setEmailVerified(false);
+        userRepresentation.setEmailVerified(isEmailVerified);
         userRepresentation.setEmail(userInfo.email());
         userRepresentation.setUsername(userInfo.email());
         userRepresentation.setLastName(userInfo.lastName());
