@@ -1,19 +1,23 @@
 package com.auxby.usermanager.config.properties;
 
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotBlank;
 
 @Data
 @Component
+@ConfigurationProperties(prefix = "keycloak")
 public class KeycloakProps {
     @NotBlank
-    private String realm = "Auxby";
+    private String url;
     @NotBlank
-    private String clientId = "user-management";
+    private String realm;
     @NotBlank
-    private String serverUrl = "https://keycloak-auxby.herokuapp.com/auth";
+    private String authUrl;
     @NotBlank
-    private String clientSecret = "SzGZEKRShNjmMaBnDRivOstRlw027BIX";
+    private String clientId;
+    @NotBlank
+    private String clientSecret;
 }

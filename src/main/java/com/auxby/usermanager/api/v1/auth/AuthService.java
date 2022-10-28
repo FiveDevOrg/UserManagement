@@ -16,15 +16,11 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import static org.keycloak.OAuth2Constants.*;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
-    private static final String USERNAME = "username";
-    private static final String PASSWORD = "password";
-    private static final String CLIENT_ID = "client_id";
-    private static final String GRANT_TYPE = "grant_type";
-    private static final String CLIENT_SECRET = "client_secret";
     private final WebClient webClient;
     private final UserService userService;
     private final KeycloakProps keycloakProps;
@@ -34,7 +30,7 @@ public class AuthService {
         verifyUserValidateEmailAddress(authInfo.email());
         try {
             KeycloakAuthResponse response = webClient.post()
-                    .uri("https://keycloak-auxby.herokuapp.com/auth/realms/Auxby/protocol/openid-connect/token")
+                    .uri(keycloakProps.getAuthUrl())
                     .body(BodyInserters.fromFormData(USERNAME, authInfo.email())
                             .with(CLIENT_SECRET, keycloakProps.getClientSecret())
                             .with(CLIENT_ID, keycloakProps.getClientId())

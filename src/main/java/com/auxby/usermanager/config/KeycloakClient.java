@@ -32,7 +32,7 @@ public class KeycloakClient {
     private void initKeycloakClient() {
         log.info("Create keycloak-client");
         keycloak = KeycloakBuilder.builder()
-                .serverUrl(keycloakProps.getServerUrl())
+                .serverUrl(keycloakProps.getUrl())
                 .realm(keycloakProps.getRealm())
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .clientId(keycloakProps.getClientId())
