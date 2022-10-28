@@ -3,7 +3,7 @@
 Spring boot service to create, read, update, delete users on Keycloak. Also send a
 verification and reset-password link to the users.
 
-![Coverage](badges/jacoco.svg)
+![Coverage](badges/jacoco.svg) ![Branches](badges/branches.svg)
 
 # Compile and Build
 
