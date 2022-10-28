@@ -29,6 +29,13 @@ public class UserController {
         return userService.getUser(email);
     }
 
+    @PutMapping("{email}")
+    public void updateUser(@PathVariable("email") String email,
+                           @Valid @RequestBody UserDetailsInfo userDto) {
+        log.info("PUT - update user profile.");
+        userService.updateUser(email, userDto);
+    }
+
     @DeleteMapping
     public void deleteUser(@RequestParam String email) {
         log.info("DELETE - delete user.");
