@@ -20,7 +20,12 @@ verification and reset-password link to the users.
     * ${DB_PASSWORD} - the database password
     * ${USER_MANAGER_DOMAIN_NAME} - the domain name (e.g: localhost)
     * ${EUREKA_URL} - the eureka URL
-    * ${EUREKA_USER_PASSWORD} - password used by eureka
+    * ${KEYCLOAK_URL} - the keyclaok host url 
+    * ${KEYCLOAK_REALM} - the keyclaok realm
+    * ${KEYCLOAK_CLIENT_ID} - the keyclaok client id
+    * ${KEYCLOAK_CLIENT_SECRET} - the keyclaok client secret
+    * ${KEYCLOAK_AUTH_URL} - the keyclaok authentication endpoint
+    
 
 # Deployment
 
