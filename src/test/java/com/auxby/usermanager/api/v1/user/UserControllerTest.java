@@ -2,6 +2,7 @@ package com.auxby.usermanager.api.v1.user;
 
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
+import com.auxby.usermanager.exception.RegistrationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -14,10 +15,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.persistence.EntityNotFoundException;
+
 import static com.auxby.usermanager.utils.TestUtils.getUrl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.EXPECTATION_FAILED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,6 +89,28 @@ class UserControllerTest {
         ArgumentCaptor<String> emailArg = ArgumentCaptor.forClass(String.class);
         verify(userService, times(1)).getUser(emailArg.capture());
         assertEquals("test@gmail.com", emailArg.getValue());
+    }
+
+    @Test
+    @SneakyThrows
+    void getUserInfo_shouldFail_whenUserNotFound() {
+        when(userService.getUser(any()))
+                .thenThrow(new EntityNotFoundException("Test exception."));
+
+        mockMvc.perform(get(getUrl(""))
+                        .param("email", "test@gmail.com"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @SneakyThrows
+    void getUserInfo_shouldFail_whenRegistrationFailureExceptionIsThrown() {
+        when(userService.getUser(any()))
+                .thenThrow(new RegistrationException("Test exception."));
+
+        mockMvc.perform(get(getUrl(""))
+                        .param("email", "test@gmail.com"))
+                .andExpect(status().is(EXPECTATION_FAILED.value()));
     }
 
     @Test

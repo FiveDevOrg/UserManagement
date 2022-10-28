@@ -11,6 +11,6 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public class AuxbyBaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 }
