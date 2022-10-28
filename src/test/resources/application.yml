@@ -1,0 +1,9 @@
+server:
+  port: 8086
+
+keycloak:
+  url: test-url
+  realm: test-realm
+  client-id: test-client
+  client-secret: test-secret
+  auth-url: test-auth-url

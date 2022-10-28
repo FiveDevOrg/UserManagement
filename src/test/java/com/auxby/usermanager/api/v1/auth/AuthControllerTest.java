@@ -2,6 +2,8 @@ package com.auxby.usermanager.api.v1.auth;
 
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
+import com.auxby.usermanager.exception.SignInException;
+import com.auxby.usermanager.exception.UserEmailNotValidated;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static com.auxby.usermanager.utils.TestUtils.getUrl;
+import static com.auxby.usermanager.utils.enums.CustomHttpStatus.USER_EMAIL_NOT_VALIDATED;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -41,6 +44,30 @@ class AuthControllerTest {
                         .content(mapper.writeValueAsString(new AuthInfo("test@gmail.com", "testPassword")))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    void login_shouldFail_whenEmailNotValidatedExceptionIsThrown() {
+        when(authService.login(any()))
+                .thenThrow(new UserEmailNotValidated("Test exception."));
+
+        mockMvc.perform(post(getUrl("login"))
+                        .content(mapper.writeValueAsString(new AuthInfo("test@gmail.com", "testPassword")))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(USER_EMAIL_NOT_VALIDATED.getCode()));
+    }
+
+    @Test
+    @SneakyThrows
+    void login_shouldFail_whenSignInExceptionExceptionIsThrown() {
+        when(authService.login(any()))
+                .thenThrow(new SignInException("Test exception."));
+
+        mockMvc.perform(post(getUrl("login"))
+                        .content(mapper.writeValueAsString(new AuthInfo("test@gmail.com", "testPassword")))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
