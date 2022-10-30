@@ -12,11 +12,11 @@ class AddressTest {
         var address2 = new Address();
         var address3 = new Address();
 
-        address1.setId(1L);
+        address1.setId(1);
         address1.setCountry("Ro");
-        address2.setId(2L);
+        address2.setId(2);
         address2.setCountry("UK");
-        address3.setId(1L);
+        address3.setId(1);
         address3.setCountry("US");
 
         assertSame(address1.getId(), address3.getId());

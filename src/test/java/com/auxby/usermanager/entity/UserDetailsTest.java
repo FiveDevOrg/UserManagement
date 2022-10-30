@@ -10,11 +10,11 @@ class UserDetailsTest {
     @Test
     void addContact() {
         UserDetails userDetails = new UserDetails();
-        userDetails.setId(1L);
+        userDetails.setId(1);
         Contact contact = new Contact();
         contact.setType(ContactType.PHONE);
         contact.setValue("0740400200");
-        contact.setId(2L);
+        contact.setId(2);
 
         userDetails.addContact(contact);
 
@@ -26,11 +26,11 @@ class UserDetailsTest {
     @Test
     void removeContact() {
         UserDetails userDetails = new UserDetails();
-        userDetails.setId(1L);
+        userDetails.setId(1);
         Contact contact = new Contact();
         contact.setType(ContactType.PHONE);
         contact.setValue("0740400200");
-        contact.setId(2L);
+        contact.setId(2);
 
         userDetails.addContact(contact);
         assertEquals(1, userDetails.getContacts().size());
@@ -42,11 +42,11 @@ class UserDetailsTest {
     @Test
     void addAddress() {
         UserDetails userDetails = new UserDetails();
-        userDetails.setId(1L);
+        userDetails.setId(1);
         Address address = new Address();
         address.setCountry("Ro");
         address.setCity("SV");
-        address.setId(2L);
+        address.setId(2);
 
         userDetails.addAddress(address);
 
@@ -58,11 +58,11 @@ class UserDetailsTest {
     @Test
     void removeAddress() {
         UserDetails userDetails = new UserDetails();
-        userDetails.setId(1L);
+        userDetails.setId(1);
         Address address = new Address();
         address.setCountry("Ro");
         address.setCity("SV");
-        address.setId(2L);
+        address.setId(2);
 
         userDetails.addAddress(address);
         assertEquals(1, userDetails.getAddresses().size());
