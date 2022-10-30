@@ -15,6 +15,7 @@ import java.util.Set;
         attributeNodes = @NamedAttributeNode(value = "contacts"))
 @NamedEntityGraph(name = "user-addresses-graph",
         attributeNodes = @NamedAttributeNode(value = "addresses"))
+@SequenceGenerator(name = "seq_generator", sequenceName = "user_details_id_seq", allocationSize = 1)
 public class UserDetails extends AuxbyBaseEntity {
     private String gender;
     private String lastName;

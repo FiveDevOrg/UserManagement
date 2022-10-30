@@ -12,11 +12,11 @@ class ContactTest {
         var contact2 = new Contact();
         var contact3 = new Contact();
 
-        contact1.setId(1L);
+        contact1.setId(1);
         contact1.setValue("0722100600");
-        contact2.setId(2L);
+        contact2.setId(2);
         contact2.setValue("0722100500");
-        contact3.setId(1L);
+        contact3.setId(1);
         contact3.setValue("0722100400");
 
         assertSame(contact1.getId(), contact3.getId());

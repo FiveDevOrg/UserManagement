@@ -10,9 +10,9 @@ import javax.persistence.*;
 @Entity
 @Table(name = "ADDRESS")
 @EqualsAndHashCode(callSuper = true)
+@SequenceGenerator(name = "seq_generator", sequenceName = "address_id_seq", allocationSize = 1)
 public class Address extends AuxbyBaseEntity {
     private String city;
-    @Column(name = "county")
     private String country;
     private String street;
     @ManyToOne(fetch = FetchType.LAZY)

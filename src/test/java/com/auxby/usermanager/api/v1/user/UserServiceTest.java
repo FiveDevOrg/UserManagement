@@ -324,21 +324,21 @@ class UserServiceTest {
 
     private UserDetails mockSavedUser(String randomUuid) {
         var user = new UserDetails();
-        user.setId(1L);
+        user.setId(1);
         user.setFirstName("Joe");
         user.setLastName("Doe");
         var address = new Address();
-        address.setId(1L);
+        address.setId(1);
         address.setStreet("");
         address.setCity("Suceava");
         address.setCountry("Ro");
         user.addAddress(address);
         var phone = new Contact();
-        phone.setId(1L);
+        phone.setId(1);
         phone.setValue("0755444322");
         phone.setType(ContactType.PHONE);
         var email = new Contact();
-        email.setId(2L);
+        email.setId(2);
         email.setValue("test@gmail.com");
         email.setType(ContactType.EMAIL);
         user.setAccountUuid(randomUuid);
