@@ -5,7 +5,9 @@ import lombok.Data;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -22,6 +24,9 @@ public class UserDetails extends AuxbyBaseEntity {
     private String firstName;
     private String accountUuid;
     private String userName;
+    @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JoinColumn(name = "owner_id")
+    private List<Offer> offers = new ArrayList<>();
     @ToString.Exclude
     @OneToMany(mappedBy = "user",
             orphanRemoval = true,
