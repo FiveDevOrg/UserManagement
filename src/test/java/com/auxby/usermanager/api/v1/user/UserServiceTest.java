@@ -10,8 +10,11 @@ import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.enums.ContactType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.keycloak.admin.client.resource.RoleMappingResource;
+import org.keycloak.admin.client.resource.RoleScopeResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -308,6 +311,8 @@ class UserServiceTest {
                                            UserResource mockUserResource,
                                            UsersResource mockRealmUserResources,
                                            UserRepresentation mockUserRepresentation) {
+        when(keycloakClient.getRealmRoleRepresentation(anyString()))
+                .thenReturn(mock(RoleRepresentation.class));
         when(mockUserRepresentation.getId())
                 .thenReturn(randomUuid);
         when(keycloakClient.getKeycloakRealmUsersResources())
@@ -320,6 +325,12 @@ class UserServiceTest {
                 .thenReturn(HttpStatus.CREATED.value());
         when(mockRealmUserResources.get(randomUuid))
                 .thenReturn(mockUserResource);
+        var mockRoleMappingResource = mock(RoleMappingResource.class);
+        var mockRoleScopeResource = mock(RoleScopeResource.class);
+        when(mockRoleMappingResource.realmLevel())
+                .thenReturn(mockRoleScopeResource);
+        when(mockUserResource.roles())
+                .thenReturn(mockRoleMappingResource);
     }
 
     private UserDetails mockSavedUser(String randomUuid) {

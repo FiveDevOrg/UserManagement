@@ -9,6 +9,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
+    public static final String AUXBY_USER = "auxby_user";
+
     @Bean
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors()
@@ -16,10 +18,12 @@ public class SecurityConfig {
                 .csrf()
                 .disable()
                 .authorizeRequests()
+                .antMatchers(HttpMethod.GET, "/api/v1/user")
+                .hasAuthority(AUXBY_USER)
                 .antMatchers(HttpMethod.PUT, "/api/v1/user/**")
-                .hasAuthority("auxby_user")
+                .hasAuthority(AUXBY_USER)
                 .antMatchers(HttpMethod.DELETE, "/api/v1/user")
-                .hasAuthority("auxby_user")
+                .hasAuthority(AUXBY_USER)
                 .anyRequest()
                 .permitAll()
                 .and()
