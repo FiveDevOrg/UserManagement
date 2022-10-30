@@ -9,6 +9,7 @@ import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -26,6 +27,16 @@ public class KeycloakClient {
             initKeycloakClient();
         }
         return keycloak.realm(keycloakProps.getRealm()).users();
+    }
+
+    public RoleRepresentation getRealmRoleRepresentation(String role) {
+        if (keycloak == null || keycloak.isClosed()) {
+            initKeycloakClient();
+        }
+        return keycloak.realm(keycloakProps.getRealm())
+                .roles()
+                .get(role)
+                .toRepresentation();
     }
 
     @PostConstruct

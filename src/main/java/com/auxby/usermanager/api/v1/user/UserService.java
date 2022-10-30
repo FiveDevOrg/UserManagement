@@ -186,7 +186,11 @@ public class UserService {
             throw new RegistrationException("User not found.");
         }
         userDetails.setAccountUuid(keycloakUser.get().getId());
-
+        keycloakClient.getKeycloakRealmUsersResources()
+                .get(keycloakUser.get().getId())
+                .roles()
+                .realmLevel()
+                .add(Collections.singletonList(keycloakClient.getRealmRoleRepresentation("auxby_user")));
         return userDetails;
     }
 
