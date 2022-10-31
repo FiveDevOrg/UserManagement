@@ -19,6 +19,7 @@ spring:
         jwt:
           issuer-uri: https://keycloak-auxby.herokuapp.com/auth/realms/Auxby
           jwk-set-uri: https://keycloak-auxby.herokuapp.com/auth/realms/Auxby/protocol/openid-connect/certs
+
 eureka:
   instance:
     instance-id: ${spring.application.name}:${random.uuid)}
