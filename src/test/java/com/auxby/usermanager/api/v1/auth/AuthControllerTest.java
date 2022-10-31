@@ -13,14 +13,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static com.auxby.usermanager.utils.TestUtils.getUrl;
 import static com.auxby.usermanager.utils.enums.CustomHttpStatus.USER_EMAIL_NOT_VALIDATED;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,61 +38,73 @@ class AuthControllerTest {
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void login_shouldReturnToken() {
         when(authService.login(any()))
                 .thenReturn(new AuthResponse("test-token"));
 
         mockMvc.perform(post(getUrl("login"))
                         .content(mapper.writeValueAsString(new AuthInfo("test@gmail.com", "testPassword")))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void login_shouldFail_whenEmailNotValidatedExceptionIsThrown() {
         when(authService.login(any()))
                 .thenThrow(new UserEmailNotValidated("Test exception."));
 
         mockMvc.perform(post(getUrl("login"))
                         .content(mapper.writeValueAsString(new AuthInfo("test@gmail.com", "testPassword")))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(USER_EMAIL_NOT_VALIDATED.getCode()));
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void login_shouldFail_whenSignInExceptionExceptionIsThrown() {
         when(authService.login(any()))
                 .thenThrow(new SignInException("Test exception."));
 
         mockMvc.perform(post(getUrl("login"))
                         .content(mapper.writeValueAsString(new AuthInfo("test@gmail.com", "testPassword")))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void login_shouldThrowException_whenEmailNotSet() {
         when(authService.login(any()))
                 .thenReturn(new AuthResponse("test-token"));
 
         mockMvc.perform(post(getUrl("login"))
                         .content(mapper.writeValueAsString(new AuthInfo("", "testPassword")))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void resetPassword() {
         doNothing().when(authService)
                 .resetPassword(any());
 
         mockMvc.perform(post(getUrl("reset"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .param("email", "test@gmail.com"))
+                        .param("email", "test@gmail.com")
+                        .with(csrf()))
                 .andExpect(status().isOk());
         ArgumentCaptor<String> emailArg = ArgumentCaptor.forClass(String.class);
         verify(authService, times(1)).resetPassword(emailArg.capture());
@@ -99,13 +113,15 @@ class AuthControllerTest {
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void resendVerificationLink() {
         doNothing().when(authService)
                 .resendVerificationLink(any());
 
         mockMvc.perform(post(getUrl("resend-verification-link"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .param("email", "test@gmail.com"))
+                        .param("email", "test@gmail.com")
+                        .with(csrf()))
                 .andExpect(status().isOk());
         ArgumentCaptor<String> emailArg = ArgumentCaptor.forClass(String.class);
         verify(authService, times(1)).resendVerificationLink(emailArg.capture());
