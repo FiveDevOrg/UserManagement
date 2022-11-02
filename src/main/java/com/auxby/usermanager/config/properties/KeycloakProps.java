@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "keycloak")
+@ConfigurationProperties(prefix = "keycloak-client")
 public class KeycloakProps {
     @NotBlank
     private String url;

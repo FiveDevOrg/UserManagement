@@ -6,8 +6,10 @@ import com.auxby.usermanager.exception.SignInException;
 import com.auxby.usermanager.exception.UserEmailNotValidated;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.keycloak.representations.adapters.config.AdapterConfig;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -35,6 +37,15 @@ class AuthControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private AuthService authService;
+    @MockBean
+    private AdapterConfig adapterConfig;
+
+    @BeforeEach
+    void setup() {
+        when(adapterConfig.getRealm()).thenReturn("test");
+        when(adapterConfig.getResource()).thenReturn("test");
+        when(adapterConfig.getAuthServerUrl()).thenReturn("test");
+    }
 
     @Test
     @SneakyThrows

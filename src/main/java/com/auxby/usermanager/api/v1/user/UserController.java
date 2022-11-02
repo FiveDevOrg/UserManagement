@@ -5,6 +5,7 @@ import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import com.auxby.usermanager.utils.constant.AppConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -30,6 +31,7 @@ public class UserController {
     }
 
     @PutMapping("{email}")
+    @PreAuthorize("isAuthenticated()")
     public void updateUser(@PathVariable("email") String email,
                            @Valid @RequestBody UserDetailsInfo userDto) {
         log.info("PUT - update user profile.");

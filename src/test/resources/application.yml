@@ -1,9 +1,17 @@
 server:
   port: 8086
 
-keycloak:
+keycloak-client:
   url: test-url
   realm: test-realm
   client-id: test-client
   client-secret: test-secret
   auth-url: test-auth-url
+
+keycloak:
+  realm: $test-realm
+  ssl-required: external
+  use-resource-role-mappings: true
+  bearer-only: true
+  auth-server-url: test-auth-url
+  resource: est-client

@@ -41,6 +41,14 @@ management:
         include: health,info
 
 keycloak:
+  realm: ${KEYCLOAK_REALM}
+  ssl-required: external
+  use-resource-role-mappings: true
+  bearer-only: true
+  auth-server-url: ${KEYCLOAK_SERVER_URL}
+  resource: ${KEYCLOAK_CLIENT_ID}
+
+keycloak-client:
   url: ${KEYCLOAK_URL}
   realm: ${KEYCLOAK_REALM}
   client-id: ${KEYCLOAK_CLIENT_ID}
