@@ -50,6 +50,7 @@ public class KeycloakClient {
                 .clientSecret(keycloakProps.getClientSecret())
                 .resteasyClient(getResEasyClient())
                 .build();
+        log.info(keycloak.tokenManager().getAccessTokenString());
     }
 
     private ResteasyClient getResEasyClient() {
