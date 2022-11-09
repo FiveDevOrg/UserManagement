@@ -69,6 +69,12 @@ public class UserService {
     }
 
     @Transactional
+    public Boolean checkUserExists(String userName) {
+        UserDetails userDetails = findUser(userName);
+        return userDetails.getUserName().equals(userName);
+    }
+
+    @Transactional
     public void updateUser(String userEmail, UserDetailsInfo userDetails) {
         UserDetails user = findUser(userEmail);
         boolean isEmailVerifiedAlready = userEmail.equals(userDetails.email());
