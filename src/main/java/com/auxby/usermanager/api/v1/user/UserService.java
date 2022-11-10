@@ -70,7 +70,12 @@ public class UserService {
 
     @Transactional
     public Boolean checkUserExists(String userName) {
-        UserDetails userDetails = findUser(userName);
+        UserDetails userDetails = userRepository
+                .findUserDetailsByUserName(userName)
+                .orElse(new UserDetails());
+        if (userDetails.getUserName() == null) {
+            return false;
+        }
         return userDetails.getUserName().equals(userName);
     }
 
