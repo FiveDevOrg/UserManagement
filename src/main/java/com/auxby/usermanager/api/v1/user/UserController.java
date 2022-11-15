@@ -43,4 +43,10 @@ public class UserController {
         log.info("DELETE - delete user.");
         userService.deleteUser(email);
     }
+
+    @GetMapping("/check")
+    public Boolean checkUserExists(@RequestParam String email) {
+        log.info("POST - check user exists");
+        return userService.checkUserExists(email);
+    }
 }
