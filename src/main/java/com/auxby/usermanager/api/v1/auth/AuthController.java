@@ -23,14 +23,14 @@ public class AuthController {
     }
 
     @PostMapping("/reset")
-    public void resetPassword(@RequestParam String email) {
+    public Boolean resetPassword(@RequestParam String email) {
         log.info("Reset password");
-        authService.resetPassword(email);
+       return authService.resetPassword(email);
     }
 
     @PostMapping("/resend-verification-link")
-    public void resendVerificationLink(@RequestParam String email) {
+    public Boolean resendVerificationLink(@RequestParam String email) {
         log.info("Resend verification link.");
-        authService.resendVerificationLink(email);
+        return  authService.resendVerificationLink(email);
     }
 }
