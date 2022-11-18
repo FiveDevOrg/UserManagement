@@ -45,13 +45,17 @@ public class AuthService {
         }
     }
 
-    public void resetPassword(String email) {
-        userService.sendResetPasswordLink(email);
+    public boolean resetPassword(String email) {
+        return userService.sendResetPasswordLink(email);
     }
 
-    public void resendVerificationLink(String email) {
+    public boolean resendVerificationLink(String email) {
         UserDetails user = userService.findUser(email);
         userService.sendVerificationPasswordLink(user.getAccountUuid());
+        if (user.getUserName() == null) {
+            return false;
+        }
+        return user.getUserName().equals(email);
     }
 
     private void verifyUserValidateEmailAddress(String email) {

@@ -105,11 +105,16 @@ public class UserService {
         }
     }
 
-    public void sendResetPasswordLink(String email) {
+    public boolean sendResetPasswordLink(String email) {
         UserDetails userDetails = findUser(email);
         keycloakClient.getKeycloakRealmUsersResources()
                 .get(userDetails.getAccountUuid())
-                .executeActionsEmail(Arrays.asList(UPDATE_PASSWORD));
+                .executeActionsEmail(List.of(UPDATE_PASSWORD));
+
+        if (userDetails.getUserName() == null) {
+            return false;
+        }
+        return userDetails.getUserName().equals(email);
     }
 
     public void sendVerificationPasswordLink(String userId) {
