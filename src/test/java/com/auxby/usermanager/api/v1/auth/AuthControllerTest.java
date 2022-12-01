@@ -109,7 +109,7 @@ class AuthControllerTest {
     @SneakyThrows
     @WithMockUser
     void resetPassword() {
-        doNothing().when(authService)
+        doReturn(true).when(authService)
                 .resetPassword(any());
 
         mockMvc.perform(post(getUrl("reset"))
@@ -126,7 +126,7 @@ class AuthControllerTest {
     @SneakyThrows
     @WithMockUser
     void resendVerificationLink() {
-        doNothing().when(authService)
+        doReturn(true).when(authService)
                 .resendVerificationLink(any());
 
         mockMvc.perform(post(getUrl("resend-verification-link"))
