@@ -13,11 +13,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors()
                 .disable()
+                .csrf()
+                .disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "api/v1/user/**")
-                .authenticated()
-                .anyRequest()
-                .permitAll()
+                .antMatchers(HttpMethod.GET,"/api/v1/user/**").authenticated()
+                .antMatchers(HttpMethod.PUT,"/api/v1/user/**").authenticated()
+                .antMatchers(HttpMethod.DELETE,"/api/v1/user/**").authenticated()
+                .anyRequest().permitAll()
                 .and()
                 .oauth2ResourceServer()
                 .jwt();
