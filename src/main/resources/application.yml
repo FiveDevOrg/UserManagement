@@ -17,19 +17,17 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://auxby-keycloak.herokuapp.com/auth/realms/Auxby
-          jwk-set-uri: https://auxby-keycloak.herokuapp.com/auth/realms/Auxby/protocol/openid-connect/certs
-
+          issuer-uri: ${KEYCLOAK_ISSUER}
+          jwk-set-uri: ${KEYCLOAK_JWKS}
 eureka:
   instance:
     instance-id: ${spring.application.name}:${random.uuid)}
-#    hostname: ${USER_MANAGER_DOMAIN_NAME}
-#    nonSecurePort: 80
+    hostname: ${USER_MANAGER_DOMAIN_NAME}
+    nonSecurePort: 80
   client:
     service-url:
       defaultZone: ${EUREKA_URL}/eureka/
   password: ${EUREKA_USER_PASSWORD}
-
 security:
   user:
     password: ${eureka.password}
