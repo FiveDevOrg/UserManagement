@@ -50,7 +50,14 @@ public class KeycloakClient {
                 .clientSecret(keycloakProps.getClientSecret())
                 .resteasyClient(getResEasyClient())
                 .build();
-        log.info(keycloak.tokenManager().getAccessTokenString());
+
+        try {
+            if (keycloak.tokenManager().getAccessTokenString() == null) {
+                throw new RuntimeException("Keycloak client configuration fails.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Keycloak client configuration fails.");
+        }
     }
 
     private ResteasyClient getResEasyClient() {
