@@ -9,6 +9,7 @@ import com.auxby.usermanager.entity.Contact;
 import com.auxby.usermanager.entity.UserDetails;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.enums.ContactType;
+import com.auxby.usermanager.utils.service.AmazonClientService;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.resource.UserResource;
@@ -17,10 +18,12 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.constraints.NotBlank;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -31,28 +34,30 @@ public class UserService {
     private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
     private final UserRepository userRepository;
     private final KeycloakClient keycloakClient;
+    private final AmazonClientService awsService;
 
     @Transactional
     public UserDetailsResponse createUser(UserDetailsInfo userInfo) {
-        Response response = keycloakClient.getKeycloakRealmUsersResources().create(createUserRepresentation(userInfo, false));
-        if (response.getStatus() != HttpStatus.CREATED.value()) {
-            throw new RegistrationException("User registration failed. " + response.getStatusInfo().getReasonPhrase());
-        }
-        UserDetails userDetails = mapToUserDetails(userInfo);
-        try {
-            Set<Contact> contacts = getUserContacts(userInfo.email(), userInfo.phone());
-            contacts.forEach(userDetails::addContact);
-            if (userInfo.address() != null) {
-                Address addresses = getUserAddress(userInfo.address());
-                userDetails.addAddress(addresses);
+        try (Response response = keycloakClient.getKeycloakRealmUsersResources().create(createUserRepresentation(userInfo, false))) {
+            if (response.getStatus() != HttpStatus.CREATED.value()) {
+                throw new RegistrationException("User registration failed. " + response.getStatusInfo().getReasonPhrase());
             }
-            UserDetails newUser = userRepository.save(userDetails);
-            sendVerificationPasswordLink(userDetails.getAccountUuid());
+            UserDetails userDetails = mapToUserDetails(userInfo);
+            try {
+                Set<Contact> contacts = getUserContacts(userInfo.email(), userInfo.phone());
+                contacts.forEach(userDetails::addContact);
+                if (userInfo.address() != null) {
+                    Address addresses = getUserAddress(userInfo.address());
+                    userDetails.addAddress(addresses);
+                }
+                UserDetails newUser = userRepository.save(userDetails);
+                sendVerificationEmailLink(userDetails.getAccountUuid());
 
-            return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
-        } catch (Exception ex) {
-            deleteKeycloakUser(userDetails.getAccountUuid());
-            throw new RegistrationException("Something went wrong. User registration failed:" + ex.getMessage());
+                return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
+            } catch (Exception ex) {
+                deleteKeycloakUser(userDetails.getAccountUuid());
+                throw new RegistrationException("Something went wrong. User registration failed:" + ex.getMessage());
+            }
         }
     }
 
@@ -68,15 +73,11 @@ public class UserService {
         userRepository.deleteById(userDetails.getId());
     }
 
-    @Transactional
     public Boolean checkUserExists(String userName) {
-        UserDetails userDetails = userRepository
-                .findUserDetailsByUserName(userName)
-                .orElse(new UserDetails());
-        if (userDetails.getUserName() == null) {
-            return false;
-        }
-        return userDetails.getUserName().equals(userName);
+        Optional<UserDetails> userDetails = userRepository
+                .findUserDetailsByUserName(userName);
+
+        return userDetails.isPresent();
     }
 
     @Transactional
@@ -101,7 +102,7 @@ public class UserService {
             user.addAddress(addresses);
         }
         if (!isEmailVerifiedAlready) {
-            sendVerificationPasswordLink(user.getAccountUuid());
+            sendVerificationEmailLink(user.getAccountUuid());
         }
     }
 
@@ -111,13 +112,10 @@ public class UserService {
                 .get(userDetails.getAccountUuid())
                 .executeActionsEmail(List.of(UPDATE_PASSWORD));
 
-        if (userDetails.getUserName() == null) {
-            return false;
-        }
-        return userDetails.getUserName().equals(email);
+        return true;
     }
 
-    public void sendVerificationPasswordLink(String userId) {
+    public void sendVerificationEmailLink(String userId) {
         try {
             UserResource user = keycloakClient.getKeycloakRealmUsersResources()
                     .get(userId);
@@ -130,6 +128,19 @@ public class UserService {
     public UserDetails findUser(String userName) {
         return userRepository.findUserDetailsByUserName(userName)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Username %s not found.", userName)));
+    }
+
+    @Transactional
+    public String updateUserAvatar(MultipartFile avatar, String userUuid) {
+        try {
+            String avatarUrl = awsService.uploadAvatar(avatar, userUuid);
+            Optional<UserDetails> userDetails = userRepository.findUserDetailsByAccountUuid(userUuid);
+            userDetails.ifPresent(details -> details.setAvatarUrl(avatarUrl));
+
+            return avatarUrl;
+        } catch (IOException exception) {
+            return "";
+        }
     }
 
     private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo, boolean isEmailVerified) {
@@ -162,11 +173,11 @@ public class UserService {
                 .findFirst()
                 .orElse(null);
         if (address == null) {
-            return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, null, phone);
+            return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, null, phone, user.getAvatarUrl());
 
         }
         AddressInfo addressInfo = new AddressInfo(address.getCity(), address.getCountry());
-        return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone);
+        return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone, user.getAvatarUrl());
     }
 
     private String getPhoneNumber(Set<Contact> contacts) {

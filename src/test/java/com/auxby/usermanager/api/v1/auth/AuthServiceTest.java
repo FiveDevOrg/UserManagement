@@ -62,7 +62,8 @@ class AuthServiceTest {
         setupKeycloakMock(true);
         when(webClientMock.post())
                 .thenThrow(new WebClientResponseException(401, "Test exception", null, null, null));
-        assertThrows(SignInException.class, () -> authService.login(new AuthInfo("test@email.com", "testPass")));
+        var request = new AuthInfo("test@email.com", "testPass");
+        assertThrows(SignInException.class, () -> authService.login(request));
     }
 
     private void setupKeycloakPropsMock() {
@@ -79,7 +80,8 @@ class AuthServiceTest {
         when(userService.findUser(any()))
                 .thenReturn(mockUserDetails());
         setupKeycloakMock(false);
-        assertThrows(UserEmailNotValidated.class, () -> authService.login(new AuthInfo("test@email.com", "testPass")));
+        var request = new AuthInfo("test@email.com", "testPass");
+        assertThrows(UserEmailNotValidated.class, () -> authService.login(request));
     }
 
     @Test
@@ -89,7 +91,7 @@ class AuthServiceTest {
                 .thenReturn(mockUser);
         authService.resendVerificationLink("tes@email");
         ArgumentCaptor<String> userUuidArg = ArgumentCaptor.forClass(String.class);
-        verify(userService, times(1)).sendVerificationPasswordLink(userUuidArg.capture());
+        verify(userService, times(1)).sendVerificationEmailLink(userUuidArg.capture());
         assertEquals(mockUser.getAccountUuid(), userUuidArg.getValue());
     }
 

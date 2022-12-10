@@ -40,7 +40,7 @@ public class AuthService {
                     .bodyToFlux(KeycloakAuthResponse.class)
                     .blockFirst();
             return new AuthResponse(response.access_token());
-        } catch (WebClientResponseException exception) {
+        } catch (WebClientResponseException | NullPointerException exception) {
             throw new SignInException("Login user " + authInfo.email() + " failed.");
         }
     }
@@ -51,11 +51,9 @@ public class AuthService {
 
     public boolean resendVerificationLink(String email) {
         UserDetails user = userService.findUser(email);
-        userService.sendVerificationPasswordLink(user.getAccountUuid());
-        if (user.getUserName() == null) {
-            return false;
-        }
-        return user.getUserName().equals(email);
+        userService.sendVerificationEmailLink(user.getAccountUuid());
+
+        return true;
     }
 
     private void verifyUserValidateEmailAddress(String email) {

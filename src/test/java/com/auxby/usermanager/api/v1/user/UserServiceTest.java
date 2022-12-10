@@ -8,6 +8,8 @@ import com.auxby.usermanager.entity.Contact;
 import com.auxby.usermanager.entity.UserDetails;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.enums.ContactType;
+import com.auxby.usermanager.utils.service.AmazonClientService;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.keycloak.admin.client.resource.RoleMappingResource;
@@ -21,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.core.Response;
@@ -40,6 +43,8 @@ class UserServiceTest {
     private KeycloakClient keycloakClient;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private AmazonClientService awsService;
 
     @Test
     void createUser_shouldSucceed() {
@@ -223,7 +228,7 @@ class UserServiceTest {
                 .thenReturn(mockUserResource);
         doNothing().when(mockUserResource).sendVerifyEmail();
 
-        userService.sendVerificationPasswordLink(uuid);
+        userService.sendVerificationEmailLink(uuid);
 
         verify(mockUserResource, times(1)).sendVerifyEmail();
     }
@@ -237,7 +242,7 @@ class UserServiceTest {
         when(mockRealmUserResources.get(uuid))
                 .thenThrow(new RuntimeException("Test exception."));
 
-        assertDoesNotThrow(() -> userService.sendVerificationPasswordLink(uuid));
+        assertDoesNotThrow(() -> userService.sendVerificationEmailLink(uuid));
     }
 
     @Test
@@ -294,6 +299,30 @@ class UserServiceTest {
         userService.updateUser("test2@gmail.com", getMockUserDetails(false));
         verify(mockUserResource, times(1)).update(any());
         verify(mockUserResource, times(1)).sendVerifyEmail();
+    }
+
+    @Test
+    void checkUserExists() {
+        when(userRepository.findUserDetailsByUserName(anyString()))
+                .thenReturn(Optional.empty());
+
+        Boolean result = userService.checkUserExists("test");
+        assertFalse(result);
+        ArgumentCaptor<String> userNameArg = ArgumentCaptor.forClass(String.class);
+        verify(userRepository, times(1)).findUserDetailsByUserName(userNameArg.capture());
+        assertEquals("test", userNameArg.getValue());
+    }
+
+    @Test
+    @SneakyThrows
+    void updateUserAvatar() {
+        when(awsService.uploadAvatar(any(), anyString()))
+                .thenReturn("avatar-uuid");
+        when(userRepository.findUserDetailsByAccountUuid(anyString()))
+                .thenReturn(Optional.of(new UserDetails()));
+
+        String result = userService.updateUserAvatar(mock(MultipartFile.class), "uuid");
+        assertNotNull(result);
     }
 
     private UserDetailsInfo getMockUserDetails(boolean setAddress) {

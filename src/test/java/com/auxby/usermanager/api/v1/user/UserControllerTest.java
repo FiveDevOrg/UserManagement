@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -155,8 +156,75 @@ class UserControllerTest {
         assertEquals("test@gmail.com", emailArg.getValue());
     }
 
+    @Test
+    @SneakyThrows
+    @WithMockUser
+    void updateUser_shouldSucceed() {
+        doNothing().when(userService).updateUser(any(), any());
+
+        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
+                "test@gmail.com", null, "0740400200");
+
+        mockMvc.perform(put(getUrl("/test@gmail.com"))
+                        .content(mapper.writeValueAsString(mockUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    @WithMockUser
+    void updateUser_shouldFailIfEmailNotValid() {
+        doNothing().when(userService).updateUser(any(), any());
+
+        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
+                "test.com", null, "0740400200");
+
+        mockMvc.perform(put(getUrl("/test@gmail.com"))
+                        .content(mapper.writeValueAsString(mockUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @SneakyThrows
+    @WithMockUser
+    void checkUser_shouldSucceed() {
+        when(userService.checkUserExists(any()))
+                .thenReturn(Boolean.FALSE);
+
+        mockMvc.perform(get(getUrl("/email/check"))
+                        .param("email", "test@gmail.com")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    @SneakyThrows
+    @WithMockUser(username = "uuid-test")
+    void updateUserAvatar_shouldSucceed() {
+        when(userService.updateUserAvatar(any(), any()))
+                .thenReturn("avatar-uuid");
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "hello.txt",
+                MediaType.TEXT_PLAIN_VALUE,
+                "Hello, World!".getBytes()
+        );
+        mockMvc.perform(multipart(getUrl("/avatar"))
+                        .file(file)
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful());
+        ArgumentCaptor<String> userUuidArg = ArgumentCaptor.forClass(String.class);
+        verify(userService, times(1)).updateUserAvatar(any(), userUuidArg.capture());
+        assertEquals("uuid-test", userUuidArg.getValue());
+    }
+
     private UserDetailsResponse getMockUser() {
         return new UserDetailsResponse("Doe", "Joe",
-                "test@gmail.com", null, "0740400200");
+                "test@gmail.com", null, "0740400200", "https://test-avatar");
     }
 }

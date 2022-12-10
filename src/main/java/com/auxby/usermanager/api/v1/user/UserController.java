@@ -2,11 +2,14 @@ package com.auxby.usermanager.api.v1.user;
 
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
+import com.auxby.usermanager.utils.SecurityContextUtil;
 import com.auxby.usermanager.utils.constant.AppConstant;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
@@ -31,7 +34,6 @@ public class UserController {
     }
 
     @PutMapping("{email}")
-    @PreAuthorize("isAuthenticated()")
     public void updateUser(@PathVariable("email") String email,
                            @Valid @RequestBody UserDetailsInfo userDto) {
         log.info("PUT - update user profile.");
@@ -46,7 +48,13 @@ public class UserController {
 
     @GetMapping("/email/check")
     public Boolean checkUserExists(@RequestParam String email) {
-        log.info("POST - check user exists");
+        log.info("POST - check user exists.");
         return userService.checkUserExists(email);
+    }
+
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String updateAvatar(@Parameter(description = "Avatar file.") @RequestPart MultipartFile file) {
+        log.info("PUT - update user avatar.");
+        return userService.updateUserAvatar(file, SecurityContextUtil.getUserId());
     }
 }
