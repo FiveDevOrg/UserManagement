@@ -61,8 +61,8 @@ public class UserService {
         }
     }
 
-    public UserDetailsResponse getUser(String userName) {
-        UserDetails userDetails = userRepository.findUserDetailsByAccountUuid(userName)
+    public UserDetailsResponse getUser(String userUuid) {
+        UserDetails userDetails = userRepository.findUserDetailsByAccountUuid(userUuid)
                 .orElseThrow(() -> new EntityNotFoundException("User not found."));
         return mapToUserDetailsInfo(userDetails, userDetails.getContacts(), userDetails.getAddresses());
     }
@@ -127,7 +127,7 @@ public class UserService {
     }
 
     public UserDetails findUser(String userName) {
-        return userRepository.findUserDetailsByAccountUuid(userName)
+        return userRepository.findUserDetailsByUserName(userName)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Username %s not found.", userName)));
     }
 

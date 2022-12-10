@@ -98,19 +98,18 @@ class UserControllerTest {
 
     @Test
     @SneakyThrows
-    @WithMockUser
+    @WithMockUser(username = "uuid")
     void getUserInfo_shouldSucceed() {
         when(userService.getUser(any()))
                 .thenReturn(getMockUser());
 
         mockMvc.perform(get(getUrl(""))
-                        .param("email", "test@gmail.com")
                         .with(csrf()))
                 .andExpect(status().isOk());
 
-        ArgumentCaptor<String> emailArg = ArgumentCaptor.forClass(String.class);
-        verify(userService, times(1)).getUser(emailArg.capture());
-        assertEquals("test@gmail.com", emailArg.getValue());
+        ArgumentCaptor<String> uuidArg = ArgumentCaptor.forClass(String.class);
+        verify(userService, times(1)).getUser(uuidArg.capture());
+        assertEquals("uuid", uuidArg.getValue());
     }
 
     @Test

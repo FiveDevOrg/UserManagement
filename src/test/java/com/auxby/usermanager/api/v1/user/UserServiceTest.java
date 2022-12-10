@@ -164,10 +164,10 @@ class UserServiceTest {
     @Test
     void getUser_shouldReturnUserDetails() {
         var uuid = UUID.randomUUID().toString();
-        when(userRepository.findUserDetailsByUserName(anyString()))
+        when(userRepository.findUserDetailsByAccountUuid(anyString()))
                 .thenReturn(Optional.of(mockSavedUser(uuid)));
 
-        var result = userService.getUser("test@gmail.com");
+        var result = userService.getUser("uuid");
         assertNotNull(result);
         assertEquals("test@gmail.com", result.email());
         assertEquals("Suceava", result.address().city());
@@ -277,7 +277,7 @@ class UserServiceTest {
                 .thenReturn(mockUserResource);
         doNothing().when(mockUserResource).update(any());
 
-        userService.updateUser("test@email.com", getMockUserDetails(true));
+        userService.updateUser("uuid", getMockUserDetails(true));
         verify(mockUserResource, times(1)).update(any());
     }
 
