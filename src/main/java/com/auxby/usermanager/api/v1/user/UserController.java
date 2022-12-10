@@ -28,9 +28,9 @@ public class UserController {
     }
 
     @GetMapping
-    public UserDetailsResponse getUserInfo(@RequestParam String email) {
+    public UserDetailsResponse getUserInfo() {
         log.info("GET - get user.");
-        return userService.getUser(email);
+        return userService.getUser(SecurityContextUtil.getUserId());
     }
 
     @PutMapping("{email}")
