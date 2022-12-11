@@ -7,16 +7,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.GenericFilterBean;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.Enumeration;
 
 @Slf4j
 @Configuration
@@ -50,27 +40,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
                 .and()
                 .oauth2ResourceServer().jwt();
-        http.addFilterBefore(new CustomFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
-    //TODO: debug only
-    public class CustomFilter extends GenericFilterBean {
-
-        @Override
-        public void doFilter(
-                ServletRequest request,
-                ServletResponse response,
-                FilterChain chain) throws IOException, ServletException {
-            HttpServletRequest httpRequest = (HttpServletRequest) request;
-            Enumeration<String> headerNames = httpRequest.getHeaderNames();
-            log.info("-------- SECURITY LOGS ------");
-            while (headerNames.hasMoreElements()) {
-                log.info("Header: " + httpRequest.getHeader(headerNames.nextElement()));
-            }
-            log.info("-------- SECURITY END LOGS ------");
-
-            chain.doFilter(request, response);
-        }
-    }
 }
