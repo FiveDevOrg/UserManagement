@@ -64,9 +64,11 @@ public class SecurityConfig {
                 FilterChain chain) throws IOException, ServletException {
             HttpServletRequest httpRequest = (HttpServletRequest) request;
             Enumeration<String> headerNames = httpRequest.getHeaderNames();
+            log.info("-------- SECURITY LOGS ------");
             while (headerNames.hasMoreElements()) {
                 log.info("Header: " + httpRequest.getHeader(headerNames.nextElement()));
             }
+            log.info("-------- SECURITY END LOGS ------");
 
             chain.doFilter(request, response);
         }
