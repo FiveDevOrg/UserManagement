@@ -1,5 +1,6 @@
 package com.auxby.usermanager.api.v1.user;
 
+import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import com.auxby.usermanager.utils.SecurityContextUtil;
@@ -33,11 +34,10 @@ public class UserController {
         return userService.getUser(SecurityContextUtil.getUserId());
     }
 
-    @PutMapping("{email}")
-    public void updateUser(@PathVariable("email") String email,
-                           @Valid @RequestBody UserDetailsInfo userDto) {
+    @PutMapping()
+    public UserDetailsResponse updateUser(@Valid @RequestBody UpdateUserInfo userDto) {
         log.info("PUT - update user profile.");
-        userService.updateUser(email, userDto);
+        return userService.updateUser(SecurityContextUtil.getUserId(), userDto);
     }
 
     @DeleteMapping

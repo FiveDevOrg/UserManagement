@@ -1,6 +1,7 @@
 package com.auxby.usermanager.api.v1.user;
 
 import com.auxby.usermanager.api.v1.address.model.AddressInfo;
+import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.config.KeycloakClient;
 import com.auxby.usermanager.entity.Address;
@@ -93,7 +94,6 @@ class UserServiceTest {
         var mockRealmUserResources = mock(UsersResource.class);
         var mockUserRepresentation = mock(UserRepresentation.class);
         mockKeycloakClientActions(randomUuid, mockResponse, mockUserResource, mockRealmUserResources, mockUserRepresentation);
-        var mockNewUser = mockSavedUser(randomUuid);
         when(userRepository.save(any()))
                 .thenReturn(new UserDetails());
         doNothing().when(mockUserResource).sendVerifyEmail();
@@ -267,7 +267,7 @@ class UserServiceTest {
     void updateUserDetails_shouldSucceed() {
         var uuid = UUID.randomUUID().toString();
 
-        when(userRepository.findUserDetailsByUserName(anyString()))
+        when(userRepository.findUserDetailsByAccountUuid(anyString()))
                 .thenReturn(Optional.of(mockSavedUser(uuid)));
         var mockUserResource = mock(UserResource.class);
         var mockRealmUserResources = mock(UsersResource.class);
@@ -277,28 +277,14 @@ class UserServiceTest {
                 .thenReturn(mockUserResource);
         doNothing().when(mockUserResource).update(any());
 
-        userService.updateUser("uuid", getMockUserDetails(true));
+        userService.updateUser("uuid", getMockUserUpdateDetails(true));
         verify(mockUserResource, times(1)).update(any());
     }
 
     @Test
     void updateUserDetailsWithDifferentEmail_shouldSucceed() {
-        var uuid = UUID.randomUUID().toString();
-
-        when(userRepository.findUserDetailsByUserName(anyString()))
-                .thenReturn(Optional.of(mockSavedUser(uuid)));
-        var mockUserResource = mock(UserResource.class);
-        var mockRealmUserResources = mock(UsersResource.class);
-        when(keycloakClient.getKeycloakRealmUsersResources())
-                .thenReturn(mockRealmUserResources);
-        when(mockRealmUserResources.get(uuid))
-                .thenReturn(mockUserResource);
-        doNothing().when(mockUserResource).update(any());
-        doNothing().when(mockUserResource).sendVerifyEmail();
-
-        userService.updateUser("test2@gmail.com", getMockUserDetails(false));
-        verify(mockUserResource, times(1)).update(any());
-        verify(mockUserResource, times(1)).sendVerifyEmail();
+        var request = getMockUserUpdateDetails(false);
+        assertThrows(EntityNotFoundException.class, () -> userService.updateUser("test2@gmail.com", request));
     }
 
     @Test
@@ -332,6 +318,16 @@ class UserServiceTest {
         } else {
             return new UserDetailsInfo("Joe", "Doe", "testPass",
                     "test@email.com", null, "0749599399");
+        }
+    }
+
+    private UpdateUserInfo getMockUserUpdateDetails(boolean setAddress) {
+        if (setAddress) {
+            return new UpdateUserInfo("Joe", "Doe",
+                    new AddressInfo("Suceava", "RO"), "0749599399");
+        } else {
+            return new UpdateUserInfo("Joe", "Doe", new AddressInfo("Suceava", "RO"),
+                    "0749599399");
         }
     }
 

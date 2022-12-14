@@ -1,5 +1,6 @@
 package com.auxby.usermanager.api.v1.user;
 
+import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import com.auxby.usermanager.exception.RegistrationException;
@@ -161,10 +162,9 @@ class UserControllerTest {
     void updateUser_shouldSucceed() {
         doNothing().when(userService).updateUser(any(), any());
 
-        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
-                "test@gmail.com", null, "0740400200");
+        var mockUser = new UpdateUserInfo("Doe", "Joe", null, "0740400200");
 
-        mockMvc.perform(put(getUrl("/test@gmail.com"))
+        mockMvc.perform(put(getUrl(""))
                         .content(mapper.writeValueAsString(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(csrf()))

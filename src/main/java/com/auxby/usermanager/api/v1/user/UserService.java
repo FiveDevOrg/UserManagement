@@ -1,6 +1,7 @@
 package com.auxby.usermanager.api.v1.user;
 
 import com.auxby.usermanager.api.v1.address.model.AddressInfo;
+import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import com.auxby.usermanager.config.KeycloakClient;
@@ -82,29 +83,36 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUser(String userEmail, UserDetailsInfo userDetails) {
-        UserDetails user = findUser(userEmail);
-        boolean isEmailVerifiedAlready = userEmail.equals(userDetails.email());
+    public UserDetailsResponse updateUser(String userUuid, UpdateUserInfo userDetails) {
+        UserDetails user = userRepository.findUserDetailsByAccountUuid(userUuid)
+                .orElseThrow(() -> new EntityNotFoundException("Username  not found."));
+
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setEnabled(true);
+        userRepresentation.setEmailVerified(true);
+        userRepresentation.setLastName(userDetails.lastName());
+        userRepresentation.setFirstName(userDetails.firstName());
+
         keycloakClient.getKeycloakRealmUsersResources()
                 .get(user.getAccountUuid())
-                .update(createUserRepresentation(userDetails, isEmailVerifiedAlready));
-        user.setUserName(userDetails.email());
+                .update(userRepresentation);
         user.setLastName(userDetails.lastName());
         user.setFirstName(userDetails.firstName());
+
         var userAddresses = new ArrayList<>(user.getAddresses());
         var userContacts = new ArrayList<>(user.getContacts());
         userAddresses.forEach(user::removeAddress);
-        userContacts.forEach(user::removeContact);
+        userContacts.stream().filter(c -> c.getType().equals(ContactType.PHONE))
+                .forEach(user::removeContact);
 
-        Set<Contact> contacts = getUserContacts(userDetails.email(), userDetails.phone());
+        Set<Contact> contacts = getUserContacts(null, userDetails.phone());
         contacts.forEach(user::addContact);
         if (userDetails.address() != null) {
             Address addresses = getUserAddress(userDetails.address());
             user.addAddress(addresses);
         }
-        if (!isEmailVerifiedAlready) {
-            sendVerificationEmailLink(user.getAccountUuid());
-        }
+
+        return mapToUserDetailsInfo(user, user.getContacts(), user.getAddresses());
     }
 
     public boolean sendResetPasswordLink(String email) {
@@ -233,7 +241,9 @@ public class UserService {
 
     private Set<Contact> getUserContacts(String email, String phone) {
         Set<Contact> contacts = new HashSet<>();
-        contacts.add(getUserEmail(email));
+        if (email != null) {
+            contacts.add(getUserEmail(email));
+        }
         contacts.add(getUserPhone(phone));
 
         return contacts;
