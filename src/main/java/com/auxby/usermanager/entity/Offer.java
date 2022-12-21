@@ -24,4 +24,7 @@ public class Offer extends AuxbyBaseEntity {
     @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "offer_id")
     private Set<OfferData> offerDetails = new HashSet<>();
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "offer_id")
+    private Set<File> files = new HashSet<>();
 }

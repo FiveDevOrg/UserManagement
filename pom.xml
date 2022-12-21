@@ -23,6 +23,9 @@
         <spring.cloud.version>3.1.4</spring.cloud.version>
         <jacoco.version>0.8.8</jacoco.version>
         <jboss.resteasy.version>3.14.0.Final</jboss.resteasy.version>
+        <aws.sdk.verson>1.12.352</aws.sdk.verson>
+        <springdoc.api.verson>1.6.13</springdoc.api.verson>
+        <postgresql.verson>42.5.1</postgresql.verson>
     </properties>
     <dependencies>
         <dependency>
@@ -32,7 +35,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.5.1</version>
+            <version>${postgresql.verson}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -75,6 +78,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <!--        Swagger-->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>${springdoc.api.verson}</version>
+        </dependency>
+        <!--        AWS SDK-->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>${aws.sdk.verson}</version>
         </dependency>
         <!--        test dependencies-->
         <dependency>
@@ -123,6 +138,15 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>com/auxby/usermanager/UserManagerApplication.java</exclude>
+                        <exclude>com/auxby/usermanager/config/AmazonConfig.java</exclude>
+                        <exclude>com/auxby/usermanager/config/SecurityConfig.java</exclude>
+                        <exclude>com/auxby/usermanager/config/KeycloakClient.java</exclude>
+                        <exclude>com/auxby/usermanager/config/OpenAPIConfiguration.java</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

@@ -1,12 +1,17 @@
 package com.auxby.usermanager.api.v1.user;
 
+import com.auxby.usermanager.api.v1.user.model.ChangePasswordDto;
+import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
+import com.auxby.usermanager.utils.SecurityContextUtil;
 import com.auxby.usermanager.utils.constant.AppConstant;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
@@ -25,28 +30,38 @@ public class UserController {
     }
 
     @GetMapping
-    public UserDetailsResponse getUserInfo(@RequestParam String email) {
+    public UserDetailsResponse getUserInfo() {
         log.info("GET - get user.");
-        return userService.getUser(email);
+        return userService.getUser(SecurityContextUtil.getUserId());
     }
 
-    @PutMapping("{email}")
-    @PreAuthorize("isAuthenticated()")
-    public void updateUser(@PathVariable("email") String email,
-                           @Valid @RequestBody UserDetailsInfo userDto) {
+    @PutMapping()
+    public UserDetailsResponse updateUser(@Valid @RequestBody UpdateUserInfo userDto) {
         log.info("PUT - update user profile.");
-        userService.updateUser(email, userDto);
+        return userService.updateUser(SecurityContextUtil.getUserId(), userDto);
     }
 
     @DeleteMapping
-    public void deleteUser(@RequestParam String email) {
+    public void deleteUser() {
         log.info("DELETE - delete user.");
-        userService.deleteUser(email);
+        userService.deleteUser(SecurityContextUtil.getUserId());
     }
 
     @GetMapping("/email/check")
     public Boolean checkUserExists(@RequestParam String email) {
-        log.info("POST - check user exists");
+        log.info("POST - check user exists.");
         return userService.checkUserExists(email);
+    }
+
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String updateAvatar(@Parameter(description = "Avatar file.") @RequestPart MultipartFile file) {
+        log.info("POST - update user avatar.");
+        return userService.updateUserAvatar(file, SecurityContextUtil.getUserId());
+    }
+
+    @PutMapping(value = "/password")
+    public Boolean changeUserPassword(@Valid @RequestBody ChangePasswordDto changePasswordDto) {
+        log.info("POST - change user password.");
+        return userService.changePassword(changePasswordDto, SecurityContextUtil.getUserId());
     }
 }

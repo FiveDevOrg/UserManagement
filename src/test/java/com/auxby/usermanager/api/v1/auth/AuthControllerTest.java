@@ -3,7 +3,7 @@ package com.auxby.usermanager.api.v1.auth;
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
 import com.auxby.usermanager.exception.SignInException;
-import com.auxby.usermanager.exception.UserEmailNotValidated;
+import com.auxby.usermanager.exception.UserEmailNotValidatedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,10 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.keycloak.representations.adapters.config.AdapterConfig;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
+@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = AuthController.class)
 class AuthControllerTest {
 
@@ -49,7 +50,6 @@ class AuthControllerTest {
 
     @Test
     @SneakyThrows
-    @WithMockUser
     void login_shouldReturnToken() {
         when(authService.login(any()))
                 .thenReturn(new AuthResponse("test-token"));
@@ -64,10 +64,9 @@ class AuthControllerTest {
 
     @Test
     @SneakyThrows
-    @WithMockUser
     void login_shouldFail_whenEmailNotValidatedExceptionIsThrown() {
         when(authService.login(any()))
-                .thenThrow(new UserEmailNotValidated("Test exception."));
+                .thenThrow(new UserEmailNotValidatedException("Test exception."));
 
         mockMvc.perform(post(getUrl("login"))
                         .content(mapper.writeValueAsString(new AuthInfo("test@gmail.com", "testPassword")))
@@ -79,7 +78,6 @@ class AuthControllerTest {
 
     @Test
     @SneakyThrows
-    @WithMockUser
     void login_shouldFail_whenSignInExceptionExceptionIsThrown() {
         when(authService.login(any()))
                 .thenThrow(new SignInException("Test exception."));
@@ -93,7 +91,6 @@ class AuthControllerTest {
 
     @Test
     @SneakyThrows
-    @WithMockUser
     void login_shouldThrowException_whenEmailNotSet() {
         when(authService.login(any()))
                 .thenReturn(new AuthResponse("test-token"));
@@ -107,7 +104,6 @@ class AuthControllerTest {
 
     @Test
     @SneakyThrows
-    @WithMockUser
     void resetPassword() {
         doReturn(true).when(authService)
                 .resetPassword(any());
@@ -124,7 +120,6 @@ class AuthControllerTest {
 
     @Test
     @SneakyThrows
-    @WithMockUser
     void resendVerificationLink() {
         doReturn(true).when(authService)
                 .resendVerificationLink(any());

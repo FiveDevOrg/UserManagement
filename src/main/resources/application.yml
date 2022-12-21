@@ -37,10 +37,18 @@ management:
     web:
       exposure:
         include: health,info
-
+springdoc:
+  swagger-ui:
+    operations-sorter: method
 keycloak-client:
   url: ${KEYCLOAK_SERVER_URL}
   realm: ${KEYCLOAK_REALM}
   client-id: ${KEYCLOAK_CLIENT_ID}
   client-secret: ${KEYCLOAK_CLIENT_SECRET}
   auth-url: ${KEYCLOAK_AUTH_URL}
+aws:
+  region: ${AWS_REGION}
+  bucket: ${AWS_BUCKET_NAME}
+  accessKey: ${AWS_ACCESS_KEY}
+  secretKey: ${AWS_SECRET_KEY}
+  endpoint: ${AWS_ENDPOINT}

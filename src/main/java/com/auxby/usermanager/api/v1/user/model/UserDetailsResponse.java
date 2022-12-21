@@ -15,5 +15,6 @@ public record UserDetailsResponse(@NotBlank(message = "Last name is mandatory.")
                                   AddressInfo address,
                                   @NotBlank(message = "Phone number is mandatory.")
                                   @Pattern(regexp = VALID_PHONE_REGEX, message = "Invalid phone number.")
-                                  String phone) {
+                                  String phone,
+                                  String avatar) {
 }
