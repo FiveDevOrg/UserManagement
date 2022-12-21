@@ -138,6 +138,15 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>com/auxby/usermanager/UserManagerApplication.java</exclude>
+                        <exclude>com/auxby/usermanager/config/AmazonConfig.java</exclude>
+                        <exclude>com/auxby/usermanager/config/SecurityConfig.java</exclude>
+                        <exclude>com/auxby/usermanager/config/KeycloakClient.java</exclude>
+                        <exclude>com/auxby/usermanager/config/OpenAPIConfiguration.java</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

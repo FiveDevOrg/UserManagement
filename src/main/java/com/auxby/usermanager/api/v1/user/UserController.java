@@ -1,5 +1,6 @@
 package com.auxby.usermanager.api.v1.user;
 
+import com.auxby.usermanager.api.v1.user.model.ChangePasswordDto;
 import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
@@ -41,9 +42,9 @@ public class UserController {
     }
 
     @DeleteMapping
-    public void deleteUser(@RequestParam String email) {
+    public void deleteUser() {
         log.info("DELETE - delete user.");
-        userService.deleteUser(email);
+        userService.deleteUser(SecurityContextUtil.getUserId());
     }
 
     @GetMapping("/email/check")
@@ -54,7 +55,13 @@ public class UserController {
 
     @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String updateAvatar(@Parameter(description = "Avatar file.") @RequestPart MultipartFile file) {
-        log.info("PUT - update user avatar.");
+        log.info("POST - update user avatar.");
         return userService.updateUserAvatar(file, SecurityContextUtil.getUserId());
+    }
+
+    @PutMapping(value = "/password")
+    public Boolean changeUserPassword(@Valid @RequestBody ChangePasswordDto changePasswordDto) {
+        log.info("POST - change user password.");
+        return userService.changePassword(changePasswordDto, SecurityContextUtil.getUserId());
     }
 }

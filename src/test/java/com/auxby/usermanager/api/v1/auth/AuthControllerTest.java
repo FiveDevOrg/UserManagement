@@ -3,7 +3,7 @@ package com.auxby.usermanager.api.v1.auth;
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
 import com.auxby.usermanager.exception.SignInException;
-import com.auxby.usermanager.exception.UserEmailNotValidated;
+import com.auxby.usermanager.exception.UserEmailNotValidatedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +66,7 @@ class AuthControllerTest {
     @SneakyThrows
     void login_shouldFail_whenEmailNotValidatedExceptionIsThrown() {
         when(authService.login(any()))
-                .thenThrow(new UserEmailNotValidated("Test exception."));
+                .thenThrow(new UserEmailNotValidatedException("Test exception."));
 
         mockMvc.perform(post(getUrl("login"))
                         .content(mapper.writeValueAsString(new AuthInfo("test@gmail.com", "testPassword")))

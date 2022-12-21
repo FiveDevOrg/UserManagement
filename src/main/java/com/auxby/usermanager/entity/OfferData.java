@@ -15,9 +15,9 @@ public class OfferData extends AuxbyBaseEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Contact)) return false;
+        if (!(o instanceof OfferData)) return false;
 
-        return getId() != null && getId().equals(((Contact) o).getId());
+        return getId() != null && getId().equals(((OfferData) o).getId());
     }
 
     @Override

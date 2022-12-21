@@ -1,25 +1,28 @@
 package com.auxby.usermanager.api.v1.user;
 
 import com.auxby.usermanager.api.v1.address.model.AddressInfo;
+import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
+import com.auxby.usermanager.api.v1.user.model.ChangePasswordDto;
 import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
-import com.auxby.usermanager.config.KeycloakClient;
 import com.auxby.usermanager.entity.Address;
 import com.auxby.usermanager.entity.Contact;
 import com.auxby.usermanager.entity.UserDetails;
+import com.auxby.usermanager.exception.ChangePasswordException;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.enums.ContactType;
 import com.auxby.usermanager.utils.service.AmazonClientService;
+import com.auxby.usermanager.utils.service.KeycloakService;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.OAuth2Constants;
-import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.constraints.NotBlank;
@@ -32,14 +35,13 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class UserService {
     private static final String UNKNOWN = "Unknown";
-    private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
     private final UserRepository userRepository;
-    private final KeycloakClient keycloakClient;
     private final AmazonClientService awsService;
+    private final KeycloakService keycloakService;
 
     @Transactional
     public UserDetailsResponse createUser(UserDetailsInfo userInfo) {
-        try (Response response = keycloakClient.getKeycloakRealmUsersResources().create(createUserRepresentation(userInfo, false))) {
+        try (Response response = keycloakService.performCreateUser(createUserRepresentation(userInfo))) {
             if (response.getStatus() != HttpStatus.CREATED.value()) {
                 throw new RegistrationException("User registration failed. " + response.getStatusInfo().getReasonPhrase());
             }
@@ -52,26 +54,25 @@ public class UserService {
                     userDetails.addAddress(addresses);
                 }
                 UserDetails newUser = userRepository.save(userDetails);
-                sendVerificationEmailLink(userDetails.getAccountUuid());
+                keycloakService.sendVerificationEmailLink(userDetails.getAccountUuid());
 
                 return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
             } catch (Exception ex) {
-                deleteKeycloakUser(userDetails.getAccountUuid());
+                keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
                 throw new RegistrationException("Something went wrong. User registration failed:" + ex.getMessage());
             }
         }
     }
 
     public UserDetailsResponse getUser(String userUuid) {
-        UserDetails userDetails = userRepository.findUserDetailsByAccountUuid(userUuid)
-                .orElseThrow(() -> new EntityNotFoundException("User not found."));
+        UserDetails userDetails = findUserDetails(userUuid);
         return mapToUserDetailsInfo(userDetails, userDetails.getContacts(), userDetails.getAddresses());
     }
 
     @Transactional
-    public void deleteUser(String userName) {
-        UserDetails userDetails = findUser(userName);
-        deleteKeycloakUser(userDetails.getAccountUuid());
+    public void deleteUser(String userUuid) {
+        UserDetails userDetails = findUserDetails(userUuid);
+        keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
         userRepository.deleteById(userDetails.getId());
     }
 
@@ -84,8 +85,7 @@ public class UserService {
 
     @Transactional
     public UserDetailsResponse updateUser(String userUuid, UpdateUserInfo userDetails) {
-        UserDetails user = userRepository.findUserDetailsByAccountUuid(userUuid)
-                .orElseThrow(() -> new EntityNotFoundException("Username  not found."));
+        UserDetails user = findUserDetails(userUuid);
 
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setEnabled(true);
@@ -93,9 +93,7 @@ public class UserService {
         userRepresentation.setLastName(userDetails.lastName());
         userRepresentation.setFirstName(userDetails.firstName());
 
-        keycloakClient.getKeycloakRealmUsersResources()
-                .get(user.getAccountUuid())
-                .update(userRepresentation);
+        keycloakService.performUserUpdate(user.getAccountUuid(), userRepresentation);
         user.setLastName(userDetails.lastName());
         user.setFirstName(userDetails.firstName());
 
@@ -117,21 +115,9 @@ public class UserService {
 
     public boolean sendResetPasswordLink(String email) {
         UserDetails userDetails = findUser(email);
-        keycloakClient.getKeycloakRealmUsersResources()
-                .get(userDetails.getAccountUuid())
-                .executeActionsEmail(List.of(UPDATE_PASSWORD));
+        keycloakService.sendResetPasswordLink(userDetails.getAccountUuid());
 
         return true;
-    }
-
-    public void sendVerificationEmailLink(String userId) {
-        try {
-            UserResource user = keycloakClient.getKeycloakRealmUsersResources()
-                    .get(userId);
-            user.sendVerifyEmail();
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
     }
 
     public UserDetails findUser(String userName) {
@@ -152,10 +138,34 @@ public class UserService {
         }
     }
 
-    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo, boolean isEmailVerified) {
+    public Boolean changePassword(ChangePasswordDto changePasswordDto, String userUuid) {
+        UserDetails userDetails = findUserDetails(userUuid);
+        AuthInfo authInfo = new AuthInfo(userDetails.getUserName(), changePasswordDto.oldPassword());
+        try {
+            keycloakService.performLogin(authInfo);
+        } catch (WebClientResponseException exception) {
+            throw new ChangePasswordException(userDetails.getUserName());
+        }
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setEnabled(true);
-        userRepresentation.setEmailVerified(isEmailVerified);
+        userRepresentation.setEmailVerified(true);
+        userRepresentation.setLastName(userDetails.getLastName());
+        userRepresentation.setFirstName(userDetails.getFirstName());
+        userRepresentation.setCredentials(Collections.singletonList(getCredentialRepresentation(changePasswordDto.newPassword())));
+        keycloakService.performUserUpdate(userUuid, userRepresentation);
+
+        return true;
+    }
+
+    private UserDetails findUserDetails(String userUuid) {
+        return userRepository.findUserDetailsByAccountUuid(userUuid)
+                .orElseThrow(() -> new EntityNotFoundException("User not found."));
+    }
+
+    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo) {
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setEnabled(true);
+        userRepresentation.setEmailVerified(false);
         userRepresentation.setEmail(userInfo.email());
         userRepresentation.setUsername(userInfo.email());
         userRepresentation.setLastName(userInfo.lastName());
@@ -217,16 +227,12 @@ public class UserService {
         userDetails.setLastName(userInfo.lastName());
         userDetails.setFirstName(userInfo.firstName());
         userDetails.setUserName(userInfo.email());
-        var keycloakUser = getKeycloakUser(userInfo.email());
+        var keycloakUser = keycloakService.getKeycloakUser(userInfo.email());
         if (keycloakUser.isEmpty()) {
             throw new RegistrationException("User not found.");
         }
         userDetails.setAccountUuid(keycloakUser.get().getId());
-        keycloakClient.getKeycloakRealmUsersResources()
-                .get(keycloakUser.get().getId())
-                .roles()
-                .realmLevel()
-                .add(Collections.singletonList(keycloakClient.getRealmRoleRepresentation("auxby_user")));
+        keycloakService.addUserRole(keycloakUser.get().getId());
         return userDetails;
     }
 
@@ -263,18 +269,5 @@ public class UserService {
         contact.setValue(phoneNumber);
 
         return contact;
-    }
-
-    private Optional<UserRepresentation> getKeycloakUser(String userName) {
-        return keycloakClient.getKeycloakRealmUsersResources()
-                .search(userName, true)
-                .stream()
-                .findFirst();
-    }
-
-    private void deleteKeycloakUser(String userId) {
-        keycloakClient.getKeycloakRealmUsersResources()
-                .get(userId)
-                .remove();
     }
 }

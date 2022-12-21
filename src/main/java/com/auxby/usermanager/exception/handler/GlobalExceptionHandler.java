@@ -2,7 +2,7 @@ package com.auxby.usermanager.exception.handler;
 
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.exception.SignInException;
-import com.auxby.usermanager.exception.UserEmailNotValidated;
+import com.auxby.usermanager.exception.UserEmailNotValidatedException;
 import com.auxby.usermanager.exception.response.ExceptionResponse;
 import org.postgresql.util.PSQLException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -60,8 +60,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(new ExceptionResponse(ex.getMessage()));
     }
 
-    @ExceptionHandler(value = UserEmailNotValidated.class)
-    protected ResponseEntity<ExceptionResponse> handleUserEmailNotValidated(UserEmailNotValidated ex) {
+    @ExceptionHandler(value = UserEmailNotValidatedException.class)
+    protected ResponseEntity<ExceptionResponse> handleUserEmailNotValidated(UserEmailNotValidatedException ex) {
         return ResponseEntity.status(USER_EMAIL_NOT_VALIDATED.getCode())
                 .body(new ExceptionResponse(ex.getMessage()));
     }

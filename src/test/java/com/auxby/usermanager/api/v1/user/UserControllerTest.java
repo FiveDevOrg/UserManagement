@@ -1,5 +1,6 @@
 package com.auxby.usermanager.api.v1.user;
 
+import com.auxby.usermanager.api.v1.user.model.ChangePasswordDto;
 import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
@@ -160,7 +161,8 @@ class UserControllerTest {
     @SneakyThrows
     @WithMockUser
     void updateUser_shouldSucceed() {
-        doNothing().when(userService).updateUser(any(), any());
+        when(userService.updateUser(any(), any()))
+                .thenReturn(new UserDetailsResponse("Doe", "Joe", "test.com", null, "0740400200", ""));
 
         var mockUser = new UpdateUserInfo("Doe", "Joe", null, "0740400200");
 
@@ -175,7 +177,8 @@ class UserControllerTest {
     @SneakyThrows
     @WithMockUser
     void updateUser_shouldFailIfEmailNotValid() {
-        doNothing().when(userService).updateUser(any(), any());
+        when(userService.updateUser(any(), any()))
+                .thenReturn(new UserDetailsResponse("Doe", "Joe", "test.com", null, "0740400200", ""));
 
         var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
                 "test.com", null, "0740400200");
@@ -220,6 +223,21 @@ class UserControllerTest {
         ArgumentCaptor<String> userUuidArg = ArgumentCaptor.forClass(String.class);
         verify(userService, times(1)).updateUserAvatar(any(), userUuidArg.capture());
         assertEquals("uuid-test", userUuidArg.getValue());
+    }
+
+    @Test
+    @SneakyThrows
+    @WithMockUser(username = "uuid-test")
+    void changeUserPassword_shouldSucceed() {
+        when(userService.changePassword(any(), any()))
+                .thenReturn(true);
+
+        var request = new ChangePasswordDto("test", "test.1234");
+        mockMvc.perform(put(getUrl("/password"))
+                        .content(mapper.writeValueAsString(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
+                .andExpect(status().isOk());
     }
 
     private UserDetailsResponse getMockUser() {
