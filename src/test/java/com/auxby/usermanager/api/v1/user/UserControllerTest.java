@@ -153,7 +153,7 @@ class UserControllerTest {
 
         ArgumentCaptor<String> emailArg = ArgumentCaptor.forClass(String.class);
         verify(userService, times(1)).deleteUser(emailArg.capture());
-        assertEquals("test@gmail.com", emailArg.getValue());
+        assertEquals("user", emailArg.getValue());
     }
 
     @Test
