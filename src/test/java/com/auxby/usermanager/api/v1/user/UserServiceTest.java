@@ -176,10 +176,10 @@ class UserServiceTest {
     @Test
     void deleteUser_shouldSucceed() {
         var uuid = UUID.randomUUID().toString();
-        when(userRepository.findUserDetailsByUserName(anyString()))
+        when(userRepository.findUserDetailsByAccountUuid(anyString()))
                 .thenReturn(Optional.of(mockUser(uuid, true)));
 
-        userService.deleteUser("test@gmail.com");
+        userService.deleteUser("test");
         verify(keycloakService, times(1))
                 .deleteKeycloakUser(any());
         verify(userRepository, times(1))

@@ -148,7 +148,6 @@ class UserControllerTest {
                 .deleteUser(any());
 
         mockMvc.perform(delete(getUrl(""))
-                        .param("email", "test@gmail.com")
                         .with(csrf()))
                 .andExpect(status().isOk());
 
