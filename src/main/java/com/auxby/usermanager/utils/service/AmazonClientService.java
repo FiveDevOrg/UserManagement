@@ -1,8 +1,7 @@
 package com.auxby.usermanager.utils.service;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -11,6 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,29 @@ public class AmazonClientService {
         file.delete();
 
         return fileUrl;
+    }
+
+    public void deleteUserAvatar(String uuid) {
+        String fileName = String.format("avatar-%s", uuid);
+        amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
+    }
+
+    public void deleteOfferResources(String userUuid, Integer offerId) {
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                .withBucketName(bucket)
+                .withPrefix(userUuid + "/" + offerId);
+        List<S3ObjectSummary> objectSummaries = amazonS3.listObjects(listObjectsRequest)
+                .getObjectSummaries();
+        if (!objectSummaries.isEmpty()) {
+            ArrayList<DeleteObjectsRequest.KeyVersion> keys = new ArrayList<>();
+            objectSummaries.forEach(
+                    s3ObjectSummary -> keys.add(new DeleteObjectsRequest.KeyVersion(s3ObjectSummary.getKey()))
+            );
+            DeleteObjectsRequest request = new DeleteObjectsRequest(bucket)
+                    .withKeys(keys)
+                    .withQuiet(false);
+            amazonS3.deleteObjects(request);
+        }
     }
 
     private File convertToFile(MultipartFile multipartFile) throws IOException {
