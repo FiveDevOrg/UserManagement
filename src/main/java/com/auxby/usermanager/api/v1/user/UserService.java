@@ -73,6 +73,7 @@ public class UserService {
     public void deleteUser(String userUuid) {
         UserDetails userDetails = findUserDetails(userUuid);
         keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
+        deleteUserAwsResources(userUuid, userDetails);
         userRepository.deleteById(userDetails.getId());
     }
 
@@ -155,6 +156,14 @@ public class UserService {
         keycloakService.performUserUpdate(userUuid, userRepresentation);
 
         return true;
+    }
+
+    private void deleteUserAwsResources(String userUuid, UserDetails userDetails) {
+        awsService.deleteUserAvatar(userUuid);
+        userDetails.getOffers()
+                .forEach(
+                        offer -> awsService.deleteOfferResources(userUuid, offer.getId())
+                );
     }
 
     private UserDetails findUserDetails(String userUuid) {
