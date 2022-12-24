@@ -22,8 +22,8 @@ spring:
 eureka:
   instance:
     instance-id: ${spring.application.name}:${random.uuid)}
-      hostname: ${USER_MANAGER_DOMAIN_NAME}
-      nonSecurePort: 80
+    hostname: ${USER_MANAGER_DOMAIN_NAME}
+    nonSecurePort: 80
   client:
     service-url:
       defaultZone: ${EUREKA_URL}/eureka/
