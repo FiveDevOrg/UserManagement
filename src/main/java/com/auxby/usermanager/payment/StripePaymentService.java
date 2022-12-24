@@ -1,6 +1,7 @@
 package com.auxby.usermanager.payment;
 
 import com.auxby.usermanager.payment.model.PaymentRequest;
+import com.auxby.usermanager.payment.model.PaymentResponse;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -23,15 +24,18 @@ public class StripePaymentService {
         Stripe.apiKey = secretKey;
     }
 
-    public String charge(PaymentRequest paymentRequest) throws StripeException {
+    public PaymentResponse createPaymentIntent(PaymentRequest paymentRequest) throws StripeException {
         PaymentIntentCreateParams paymentIntentParams = new PaymentIntentCreateParams.Builder()
-                .setAmount((long) (paymentRequest.amount() * 100))
-                .setCurrency(paymentRequest.currency().name())
-                .setDescription("Charge for bundle.")
-                .setPaymentMethod(paymentRequest.paymentMethod())
+                .setAmount(computePaymentAmount(paymentRequest))
+                .addPaymentMethodType(paymentRequest.paymentType())
+                .setCurrency(paymentRequest.currency())
                 .build();
         PaymentIntent paymentIntent = PaymentIntent.create(paymentIntentParams);
 
-        return paymentIntent.getInvoice();
+        return new PaymentResponse(paymentIntent.getClientSecret());
+    }
+
+    private long computePaymentAmount(PaymentRequest paymentRequest) {
+        return (long) (paymentRequest.amount() * 100);
     }
 }
