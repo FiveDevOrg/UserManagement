@@ -1,6 +1,7 @@
 package com.auxby.usermanager.payment;
 
 import com.auxby.usermanager.payment.model.PaymentRequest;
+import com.auxby.usermanager.payment.model.PaymentResponse;
 import com.auxby.usermanager.utils.constant.AppConstant;
 import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,9 @@ public class PaymentController {
 
     private final StripePaymentService stripePaymentService;
 
-    @PostMapping("/payment/charge")
-    public String createPaymentIntent(@Valid @RequestBody PaymentRequest paymentRequest) throws StripeException {
+    @PostMapping("/create-payment-intent")
+    public PaymentResponse createPaymentIntent(@Valid @RequestBody PaymentRequest paymentRequest) throws StripeException {
         log.info("POST - trigger a payment.");
-        return stripePaymentService.charge(paymentRequest);
+        return stripePaymentService.createPaymentIntent(paymentRequest);
     }
 }
