@@ -1,7 +1,9 @@
-package com.auxby.usermanager.payment;
+package com.auxby.usermanager.api.v1.payment;
 
-import com.auxby.usermanager.payment.model.PaymentRequest;
-import com.auxby.usermanager.payment.model.PaymentResponse;
+import com.auxby.usermanager.api.v1.payment.model.ConfirmedPaymentRequest;
+import com.auxby.usermanager.api.v1.payment.model.PaymentRequest;
+import com.auxby.usermanager.api.v1.payment.model.PaymentResponse;
+import com.auxby.usermanager.utils.SecurityContextUtil;
 import com.auxby.usermanager.utils.constant.AppConstant;
 import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,12 @@ public class PaymentController {
     @PostMapping("/create-payment-intent")
     public PaymentResponse createPaymentIntent(@Valid @RequestBody PaymentRequest paymentRequest) throws StripeException {
         log.info("POST - trigger a payment.");
-        return stripePaymentService.createPaymentIntent(paymentRequest);
+        return stripePaymentService.createPaymentIntent(paymentRequest, SecurityContextUtil.getUserId());
+    }
+
+    @PostMapping("/payment-confirmed")
+    public void addPaymentBundleToUser(@Valid @RequestBody ConfirmedPaymentRequest confirmedPaymentRequest) {
+        log.info("POST - add bundle resources to user after payment succeeded.");
+        stripePaymentService.confirmedPayment(confirmedPaymentRequest, SecurityContextUtil.getUserId());
     }
 }
