@@ -1,4 +1,4 @@
-package com.auxby.usermanager.payment.model;
+package com.auxby.usermanager.api.v1.payment.model;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;

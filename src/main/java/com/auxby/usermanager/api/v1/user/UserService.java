@@ -158,6 +158,17 @@ public class UserService {
         return true;
     }
 
+    @Transactional
+    public void addUserResources(Integer coins, String userUuid) {
+        UserDetails user = findUserDetails(userUuid);
+        if (Objects.isNull(user.getAvailableCoins())) {
+            user.setAvailableCoins(coins);
+        } else {
+            Integer totalCoins = coins + user.getAvailableCoins();
+            user.setAvailableCoins(totalCoins);
+        }
+    }
+
     private void deleteUserAwsResources(String userUuid, UserDetails userDetails) {
         awsService.deleteUserAvatar(userUuid);
         userDetails.getOffers()
