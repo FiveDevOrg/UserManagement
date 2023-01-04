@@ -19,6 +19,10 @@ spring:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER}
           jwk-set-uri: ${KEYCLOAK_JWKS}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
 eureka:
   instance:
     instance-id: ${spring.application.name}:${random.uuid)}
