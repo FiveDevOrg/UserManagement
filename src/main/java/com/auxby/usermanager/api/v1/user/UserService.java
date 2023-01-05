@@ -2,10 +2,7 @@ package com.auxby.usermanager.api.v1.user;
 
 import com.auxby.usermanager.api.v1.address.model.AddressInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
-import com.auxby.usermanager.api.v1.user.model.ChangePasswordDto;
-import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
-import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
-import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
+import com.auxby.usermanager.api.v1.user.model.*;
 import com.auxby.usermanager.entity.Address;
 import com.auxby.usermanager.entity.Contact;
 import com.auxby.usermanager.entity.UserDetails;
@@ -127,15 +124,15 @@ public class UserService {
     }
 
     @Transactional
-    public String updateUserAvatar(MultipartFile avatar, String userUuid) {
+    public UploadAvatarResponse updateUserAvatar(MultipartFile avatar, String userUuid) {
         try {
             String avatarUrl = awsService.uploadAvatar(avatar, userUuid);
             Optional<UserDetails> userDetails = userRepository.findUserDetailsByAccountUuid(userUuid);
             userDetails.ifPresent(details -> details.setAvatarUrl(avatarUrl));
 
-            return avatarUrl;
+            return new UploadAvatarResponse(avatarUrl);
         } catch (IOException exception) {
-            return "";
+            return new UploadAvatarResponse("unavailable");
         }
     }
 

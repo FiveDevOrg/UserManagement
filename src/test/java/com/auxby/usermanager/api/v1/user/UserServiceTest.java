@@ -282,7 +282,7 @@ class UserServiceTest {
         when(userRepository.findUserDetailsByAccountUuid(anyString()))
                 .thenReturn(Optional.of(new UserDetails()));
 
-        String result = userService.updateUserAvatar(mock(MultipartFile.class), "uuid");
+        var result = userService.updateUserAvatar(mock(MultipartFile.class), "uuid");
         assertNotNull(result);
     }
 
@@ -292,8 +292,8 @@ class UserServiceTest {
         when(awsService.uploadAvatar(any(), anyString()))
                 .thenThrow(new IOException("Test exception."));
 
-        String result = userService.updateUserAvatar(mock(MultipartFile.class), "uuid");
-        assertTrue(result.isEmpty());
+        var result = userService.updateUserAvatar(mock(MultipartFile.class), "uuid");
+        assertEquals("unavailable", result.avatarUrl());
     }
 
     @Test
