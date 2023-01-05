@@ -1,9 +1,6 @@
 package com.auxby.usermanager.api.v1.user;
 
-import com.auxby.usermanager.api.v1.user.model.ChangePasswordDto;
-import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
-import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
-import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
+import com.auxby.usermanager.api.v1.user.model.*;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -207,7 +204,7 @@ class UserControllerTest {
     @WithMockUser(username = "uuid-test")
     void updateUserAvatar_shouldSucceed() {
         when(userService.updateUserAvatar(any(), any()))
-                .thenReturn("avatar-uuid");
+                .thenReturn(new UploadAvatarResponse("avatar-uuid"));
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",

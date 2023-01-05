@@ -1,9 +1,6 @@
 package com.auxby.usermanager.api.v1.user;
 
-import com.auxby.usermanager.api.v1.user.model.ChangePasswordDto;
-import com.auxby.usermanager.api.v1.user.model.UpdateUserInfo;
-import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
-import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
+import com.auxby.usermanager.api.v1.user.model.*;
 import com.auxby.usermanager.utils.SecurityContextUtil;
 import com.auxby.usermanager.utils.constant.AppConstant;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -54,7 +51,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String updateAvatar(@Parameter(description = "Avatar file.") @RequestPart MultipartFile file) {
+    public UploadAvatarResponse updateAvatar(@Parameter(description = "Avatar file.") @RequestPart MultipartFile file) {
         log.info("POST - update user avatar.");
         return userService.updateUserAvatar(file, SecurityContextUtil.getUserId());
     }
