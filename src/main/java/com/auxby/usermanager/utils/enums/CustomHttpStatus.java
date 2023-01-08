@@ -1,7 +1,8 @@
 package com.auxby.usermanager.utils.enums;
 
 public enum CustomHttpStatus {
-    USER_EMAIL_NOT_VALIDATED(450);
+    ACTION_NOT_ALLOW(481),
+    USER_EMAIL_NOT_VALIDATED(470);
 
     CustomHttpStatus(int code) {
         this.code = code;

@@ -8,6 +8,7 @@ import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.entity.Address;
 import com.auxby.usermanager.entity.Contact;
 import com.auxby.usermanager.entity.UserDetails;
+import com.auxby.usermanager.exception.ActionNotAllowException;
 import com.auxby.usermanager.exception.ChangePasswordException;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.TestMock;
@@ -29,6 +30,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -183,6 +185,22 @@ class UserServiceTest {
         verify(keycloakService, times(1))
                 .deleteKeycloakUser(any());
         verify(userRepository, times(1))
+                .deleteById(any());
+    }
+
+    @Test
+    void deleteUser_shouldSucceed_shouldFail() {
+        var uuid = UUID.randomUUID().toString();
+        var mockUser = mockUser(uuid, true);
+        when(userRepository.findUserDetailsByAccountUuid(anyString()))
+                .thenReturn(Optional.of(mockUser));
+        when(userRepository.getTopBidderIdForOffers())
+                .thenReturn(List.of(mockUser.getId()));
+
+        assertThrows(ActionNotAllowException.class, () -> userService.deleteUser("test"));
+        verify(keycloakService, times(0))
+                .deleteKeycloakUser(any());
+        verify(userRepository, times(0))
                 .deleteById(any());
     }
 
