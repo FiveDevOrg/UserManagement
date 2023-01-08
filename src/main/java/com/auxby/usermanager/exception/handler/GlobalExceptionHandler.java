@@ -1,9 +1,11 @@
 package com.auxby.usermanager.exception.handler;
 
+import com.auxby.usermanager.exception.ActionNotAllowException;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.exception.SignInException;
 import com.auxby.usermanager.exception.UserEmailNotValidatedException;
 import com.auxby.usermanager.exception.response.ExceptionResponse;
+import com.auxby.usermanager.utils.enums.CustomHttpStatus;
 import org.postgresql.util.PSQLException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -69,6 +71,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = PSQLException.class)
     protected ResponseEntity<ExceptionResponse> handleSQLException(PSQLException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ExceptionResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(value = ActionNotAllowException.class)
+    protected ResponseEntity<ExceptionResponse> handleEditNotAllow(ActionNotAllowException ex) {
+        return ResponseEntity.status(CustomHttpStatus.ACTION_NOT_ALLOW.getCode())
                 .body(new ExceptionResponse(ex.getMessage()));
     }
 }
