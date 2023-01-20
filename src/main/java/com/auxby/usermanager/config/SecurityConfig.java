@@ -1,6 +1,9 @@
 package com.auxby.usermanager.config;
 
+import com.auxby.usermanager.api.v1.user.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,10 +11,15 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static com.auxby.usermanager.utils.constant.AppConstant.BASE_V1_URL;
+
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
+    private final UserService userService;
 
     private static final String[] SWAGGER_WHITELIST = {
             "/v3/api-docs/**",
@@ -44,4 +52,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public FilterRegistrationBean<MonitoringFilter> userActivityFilter() {
+        FilterRegistrationBean<MonitoringFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new MonitoringFilter(userService));
+        registrationBean.addUrlPatterns("/" + BASE_V1_URL + "/*");
+        registrationBean.setOrder(100);
+
+        return registrationBean;
+    }
 }

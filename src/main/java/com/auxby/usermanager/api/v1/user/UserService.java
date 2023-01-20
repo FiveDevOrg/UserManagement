@@ -294,4 +294,9 @@ public class UserService {
 
         return contact;
     }
+
+    @Transactional
+    public void updateUserLastSeen(String uuid) {
+        userRepository.updateUserLastSeen(uuid);
+    }
 }

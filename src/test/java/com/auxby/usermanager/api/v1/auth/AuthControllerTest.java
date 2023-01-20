@@ -2,6 +2,7 @@ package com.auxby.usermanager.api.v1.auth;
 
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
+import com.auxby.usermanager.api.v1.user.UserService;
 import com.auxby.usermanager.exception.SignInException;
 import com.auxby.usermanager.exception.UserEmailNotValidatedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +41,8 @@ class AuthControllerTest {
     private AuthService authService;
     @MockBean
     private AdapterConfig adapterConfig;
+    @MockBean
+    private UserService userService;
 
     @BeforeEach
     void setup() {
