@@ -5,6 +5,7 @@ import com.auxby.usermanager.api.v1.payment.model.PaymentRequest;
 import com.auxby.usermanager.api.v1.payment.model.PaymentResponse;
 import com.auxby.usermanager.api.v1.user.UserService;
 import com.auxby.usermanager.entity.PaymentHistory;
+import com.auxby.usermanager.entity.UserDetails;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -36,9 +37,11 @@ public class StripePaymentService {
     }
 
     public PaymentResponse createPaymentIntent(PaymentRequest paymentRequest, String userId) throws StripeException {
+        UserDetails userDetails = userService.findUserDetails(userId);
         PaymentIntentCreateParams paymentIntentParams = new PaymentIntentCreateParams.Builder()
                 .setAmount(computePaymentAmount(paymentRequest))
                 .addPaymentMethodType(paymentRequest.paymentType())
+                .setReceiptEmail(userDetails.getUserName())
                 .setCurrency(paymentRequest.currency())
                 .build();
         PaymentIntent paymentIntent = PaymentIntent.create(paymentIntentParams);

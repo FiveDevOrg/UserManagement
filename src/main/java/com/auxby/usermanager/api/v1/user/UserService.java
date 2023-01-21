@@ -173,17 +173,17 @@ public class UserService {
         }
     }
 
+    public UserDetails findUserDetails(String userUuid) {
+        return userRepository.findUserDetailsByAccountUuid(userUuid)
+                .orElseThrow(() -> new EntityNotFoundException("User not found."));
+    }
+
     private void deleteUserAwsResources(String userUuid, UserDetails userDetails) {
         awsService.deleteUserAvatar(userUuid);
         userDetails.getOffers()
                 .forEach(
                         offer -> awsService.deleteOfferResources(userUuid, offer.getId())
                 );
-    }
-
-    private UserDetails findUserDetails(String userUuid) {
-        return userRepository.findUserDetailsByAccountUuid(userUuid)
-                .orElseThrow(() -> new EntityNotFoundException("User not found."));
     }
 
     private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo) {
