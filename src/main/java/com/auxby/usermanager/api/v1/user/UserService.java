@@ -3,7 +3,10 @@ package com.auxby.usermanager.api.v1.user;
 import com.auxby.usermanager.api.v1.address.model.AddressInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.user.model.*;
-import com.auxby.usermanager.entity.*;
+import com.auxby.usermanager.entity.Address;
+import com.auxby.usermanager.entity.Contact;
+import com.auxby.usermanager.entity.Offer;
+import com.auxby.usermanager.entity.UserDetails;
 import com.auxby.usermanager.exception.ActionNotAllowException;
 import com.auxby.usermanager.exception.ChangePasswordException;
 import com.auxby.usermanager.exception.RegistrationException;
@@ -11,6 +14,7 @@ import com.auxby.usermanager.utils.enums.ContactType;
 import com.auxby.usermanager.utils.service.AmazonClientService;
 import com.auxby.usermanager.utils.service.KeycloakService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -26,6 +30,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -50,8 +55,7 @@ public class UserService {
                     userDetails.addAddress(addresses);
                 }
                 UserDetails newUser = userRepository.save(userDetails);
-                keycloakService.sendVerificationEmailLink(userDetails.getAccountUuid());
-
+                sendEmailVerificationLink(userDetails);
                 return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
             } catch (Exception ex) {
                 keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
@@ -59,6 +63,7 @@ public class UserService {
             }
         }
     }
+
 
     public UserDetailsResponse getUser(String userUuid) {
         UserDetails userDetails = findUserDetails(userUuid);
@@ -173,17 +178,22 @@ public class UserService {
         }
     }
 
+    @Transactional
+    public void updateUserLastSeen(String uuid) {
+        userRepository.updateUserLastSeen(uuid);
+    }
+
+    public UserDetails findUserDetails(String userUuid) {
+        return userRepository.findUserDetailsByAccountUuid(userUuid)
+                .orElseThrow(() -> new EntityNotFoundException("User not found."));
+    }
+
     private void deleteUserAwsResources(String userUuid, UserDetails userDetails) {
         awsService.deleteUserAvatar(userUuid);
         userDetails.getOffers()
                 .forEach(
                         offer -> awsService.deleteOfferResources(userUuid, offer.getId())
                 );
-    }
-
-    private UserDetails findUserDetails(String userUuid) {
-        return userRepository.findUserDetailsByAccountUuid(userUuid)
-                .orElseThrow(() -> new EntityNotFoundException("User not found."));
     }
 
     private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo) {
@@ -295,8 +305,11 @@ public class UserService {
         return contact;
     }
 
-    @Transactional
-    public void updateUserLastSeen(String uuid) {
-        userRepository.updateUserLastSeen(uuid);
+    private void sendEmailVerificationLink(UserDetails userDetails) {
+        try {
+            keycloakService.sendVerificationEmailLink(userDetails.getAccountUuid());
+        } catch (Exception exception) {
+            log.info("Keycloak failed to send verification email link.");
+        }
     }
 }

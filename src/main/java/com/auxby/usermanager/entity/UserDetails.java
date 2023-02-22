@@ -26,6 +26,8 @@ public class UserDetails extends AuxbyBaseEntity {
     private String userName;
     private String avatarUrl;
     private Integer availableCoins;
+    private String cui;
+    private String type;
 
     @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "owner_id")
