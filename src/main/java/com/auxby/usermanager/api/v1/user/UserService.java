@@ -222,15 +222,14 @@ public class UserService {
     private UserDetailsResponse mapToUserDetailsInfo(UserDetails user, Set<Contact> contacts, Set<Address> addresses) {
         String phone = getPhoneNumber(contacts);
         String email = getEmailAddress(contacts);
-        Address address = addresses.stream()
-                .findFirst()
-                .orElse(null);
-        if (address == null) {
-            return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, null, phone, user.getAvatarUrl());
+        Optional<Address> address = addresses.stream()
+                .findFirst();
+        if (address.isEmpty()) {
+            return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, null, phone, user.getAvatarUrl(), user.getAvailableCoins());
 
         }
-        AddressInfo addressInfo = new AddressInfo(address.getCity(), address.getCountry());
-        return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone, user.getAvatarUrl());
+        AddressInfo addressInfo = new AddressInfo(address.get().getCity(), address.get().getCountry());
+        return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone, user.getAvatarUrl(), user.getAvailableCoins());
     }
 
     private String getPhoneNumber(Set<Contact> contacts) {
