@@ -158,7 +158,7 @@ class UserControllerTest {
     @WithMockUser
     void updateUser_shouldSucceed() {
         when(userService.updateUser(any(), any()))
-                .thenReturn(new UserDetailsResponse("Doe", "Joe", "test.com", null, "0740400200", ""));
+                .thenReturn(new UserDetailsResponse("Doe", "Joe", "test.com", null, "0740400200", "", 0));
 
         var mockUser = new UpdateUserInfo("Doe", "Joe", null, "0740400200");
 
@@ -174,7 +174,7 @@ class UserControllerTest {
     @WithMockUser
     void updateUser_shouldFailIfEmailNotValid() {
         when(userService.updateUser(any(), any()))
-                .thenReturn(new UserDetailsResponse("Doe", "Joe", "test.com", null, "0740400200", ""));
+                .thenReturn(new UserDetailsResponse("Doe", "Joe", "test.com", null, "0740400200", "",0));
 
         var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
                 "test.com", null, "0740400200");
@@ -238,6 +238,6 @@ class UserControllerTest {
 
     private UserDetailsResponse getMockUser() {
         return new UserDetailsResponse("Doe", "Joe",
-                "test@gmail.com", null, "0740400200", "https://test-avatar");
+                "test@gmail.com", null, "0740400200", "https://test-avatar",0);
     }
 }
