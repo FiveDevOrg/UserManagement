@@ -61,4 +61,7 @@ public class UserController {
         log.info("POST - change user password.");
         return userService.changePassword(changePasswordDto, SecurityContextUtil.getUserId());
     }
+
+    //TODO: New endpoint for user rating : { int : starts , comment: String}
+    // return owner rating on offer details
 }
