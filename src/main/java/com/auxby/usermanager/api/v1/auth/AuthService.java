@@ -1,15 +1,23 @@
 package com.auxby.usermanager.api.v1.auth;
 
+import com.auxby.usermanager.api.v1.address.model.AddressInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthGoogle;
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
 import com.auxby.usermanager.api.v1.auth.model.KeycloakAuthResponse;
 import com.auxby.usermanager.api.v1.user.UserService;
+import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
+import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import com.auxby.usermanager.config.properties.KeycloakProps;
 import com.auxby.usermanager.entity.UserDetails;
 import com.auxby.usermanager.exception.SignInException;
 import com.auxby.usermanager.exception.UserEmailNotValidatedException;
 import com.auxby.usermanager.utils.service.KeycloakService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -19,7 +27,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import javax.validation.Valid;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Arrays;
+import java.util.List;
 
+import static com.auxby.usermanager.utils.constant.AppConstant.ANDROID_GOOGLE_CLIENT;
+import static com.auxby.usermanager.utils.constant.AppConstant.IOS_GOOGLE_CLIENT;
 import static org.keycloak.OAuth2Constants.*;
 
 @Service
@@ -76,38 +90,44 @@ public class AuthService {
         }
     }
 
-    public Boolean googleAuth(@Valid AuthGoogle authGoogle) {
-//        NetHttpTransport transport = new NetHttpTransport();
-//        JsonFactory jsonFactory = new GsonFactory();
-//
-//        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-//                .setAudience(Collections.singletonList("156615882044-rdmjaosndk9ovbsno56imkkomgr799bq.apps.googleusercontent.com"))
-//                .build();
-//
-//        GoogleIdToken idToken = GoogleIdToken.parse(verifier.getJsonFactory(), googleToken.token());
-//        boolean tokenIsValid = verifier.verify(idToken);
-//
-//        if (tokenIsValid) {
-//            GoogleIdToken.Payload payload = idToken.getPayload();
-//
-//            // Print user identifier
-//            String userId = payload.getSubject();
-//            System.out.println("User ID: " + userId);
-//
-//            // Get profile information from payload
-//            String email = payload.getEmail();
-//            boolean emailVerified = payload.getEmailVerified();
-//            String name = (String) payload.get("name");
-//            String pictureUrl = (String) payload.get("picture");
-//            String locale = (String) payload.get("locale");
-//            String familyName = (String) payload.get("family_name");
-//            String givenName = (String) payload.get("given_name");
-//            System.out.println(" email: " + email);
-//            System.out.println(" givenName: " + givenName);
-//        } else {
-//            System.out.println("Invalid ID token.");
-//        }
-        return true;
+    public AuthResponse googleAuth(@Valid AuthGoogle authGoogle) {
+        try {
+            UserDetailsInfo googleUserDetails = getGoogleUserDetails(authGoogle);
+            registerGoogleUser(googleUserDetails);
+            return login(new AuthInfo(googleUserDetails.email(), googleUserDetails.password()));
+        } catch (Exception exception) {
+            throw new SignInException(exception.getLocalizedMessage());
+        }
+    }
+
+    private UserDetailsResponse registerGoogleUser(UserDetailsInfo userDetailsInfo) {
+        return userService.createUser(userDetailsInfo, true);
+    }
+
+    private UserDetailsInfo getGoogleUserDetails(@Valid AuthGoogle authGoogle) throws GeneralSecurityException, IOException {
+        NetHttpTransport transport = new NetHttpTransport();
+        JsonFactory jsonFactory = new GsonFactory();
+
+        List<String> clientIDs = Arrays.asList(
+                IOS_GOOGLE_CLIENT,
+                ANDROID_GOOGLE_CLIENT);
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                .setAudience(clientIDs)
+                .build();
+
+        GoogleIdToken idToken = GoogleIdToken.parse(verifier.getJsonFactory(), authGoogle.token());
+        boolean tokenIsValid = verifier.verify(idToken);
+
+        if (tokenIsValid) {
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String userPwd = "Pwd." + payload.getSubject();
+            String email = payload.getEmail();
+            String familyName = (String) payload.get("family_name");
+            String givenName = (String) payload.get("given_name");
+            return new UserDetailsInfo(familyName, givenName, userPwd, email, new AddressInfo("", ""), "");
+        } else {
+            throw new SignInException("Google failed: Invalid ID token.");
+        }
     }
 
     private void verifyUserValidateEmailAddress(String email) {

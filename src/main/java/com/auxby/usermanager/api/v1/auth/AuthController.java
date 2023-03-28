@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 @Slf4j
 @RestController
@@ -24,7 +26,7 @@ public class AuthController {
     }
 
     @PostMapping("/googleAuth")
-    public Boolean googleAuth(@Valid @RequestBody AuthGoogle authGoogle) {
+    public AuthResponse googleAuth(@Valid @RequestBody AuthGoogle authGoogle) {
         log.info("POST - googleAuth");
         return authService.googleAuth(authGoogle);
     }
@@ -32,12 +34,12 @@ public class AuthController {
     @PostMapping("/reset")
     public Boolean resetPassword(@RequestParam String email) {
         log.info("Reset password");
-       return authService.resetPassword(email);
+        return authService.resetPassword(email);
     }
 
     @PostMapping("/resend-verification-link")
     public Boolean resendVerificationLink(@RequestParam String email) {
         log.info("Resend verification link.");
-        return  authService.resendVerificationLink(email);
+        return authService.resendVerificationLink(email);
     }
 }

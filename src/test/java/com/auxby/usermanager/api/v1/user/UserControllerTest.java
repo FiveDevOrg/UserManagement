@@ -51,7 +51,7 @@ class UserControllerTest {
     @SneakyThrows
     @WithMockUser
     void createUser_shouldSucceed() {
-        when(userService.createUser(any()))
+        when(userService.createUser(any(), false))
                 .thenReturn(getMockUser());
         var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
                 "test@gmail.com", null, "0740400200");
@@ -67,7 +67,7 @@ class UserControllerTest {
     @SneakyThrows
     @WithMockUser
     void createUser_shouldFail_whenEmailNotValid() {
-        when(userService.createUser(any()))
+        when(userService.createUser(any(), false))
                 .thenReturn(getMockUser());
         var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
                 "test", null, "0740400200");
@@ -83,7 +83,7 @@ class UserControllerTest {
     @SneakyThrows
     @WithMockUser
     void createUser_shouldFail_whenPhoneNotSet() {
-        when(userService.createUser(any()))
+        when(userService.createUser(any(), false))
                 .thenReturn(getMockUser());
         var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
                 "test@gmail.com", null, "");

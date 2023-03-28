@@ -30,6 +30,7 @@ public class SecurityConfig {
             "/api/v1/user",
             "/api/v1/user/reset",
             "/api/v1/user/login",
+            "/api/v1/user/googleAuth",
             "/api/v1/user/resend-verification-link"
     };
 

@@ -41,8 +41,13 @@ public class UserService {
     private final KeycloakService keycloakService;
 
     @Transactional
-    public UserDetailsResponse createUser(UserDetailsInfo userInfo) {
-        try (Response response = keycloakService.performCreateUser(createUserRepresentation(userInfo))) {
+    public UserDetailsResponse createUser(UserDetailsInfo userInfo, Boolean isGoogleAuth) {
+        try (Response response = keycloakService.performCreateUser(createUserRepresentation(userInfo, isGoogleAuth))) {
+
+            if (response.getStatus() == HttpStatus.CONFLICT.value() && isGoogleAuth ) {
+                return null;
+            }
+
             if (response.getStatus() != HttpStatus.CREATED.value()) {
                 throw new RegistrationException("User registration failed. " + response.getStatusInfo().getReasonPhrase());
             }
@@ -55,7 +60,9 @@ public class UserService {
                     userDetails.addAddress(addresses);
                 }
                 UserDetails newUser = userRepository.save(userDetails);
-                sendEmailVerificationLink(userDetails);
+                if (!isGoogleAuth) {
+                    sendEmailVerificationLink(userDetails);
+                }
                 return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
             } catch (Exception ex) {
                 keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
@@ -196,10 +203,10 @@ public class UserService {
                 );
     }
 
-    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo) {
+    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo, Boolean isGoogleAuth) {
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setEnabled(true);
-        userRepresentation.setEmailVerified(false);
+        userRepresentation.setEmailVerified(isGoogleAuth);
         userRepresentation.setEmail(userInfo.email());
         userRepresentation.setUsername(userInfo.email());
         userRepresentation.setLastName(userInfo.lastName());
