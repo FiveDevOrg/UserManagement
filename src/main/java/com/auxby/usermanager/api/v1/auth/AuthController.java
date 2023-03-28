@@ -1,5 +1,6 @@
 package com.auxby.usermanager.api.v1.auth;
 
+import com.auxby.usermanager.api.v1.auth.model.AuthGoogle;
 import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
 import com.auxby.usermanager.utils.constant.AppConstant;
@@ -20,6 +21,12 @@ public class AuthController {
     public AuthResponse login(@Valid @RequestBody AuthInfo authInfo) {
         log.info("Login user.");
         return authService.login(authInfo);
+    }
+
+    @PostMapping("/googleAuth")
+    public Boolean googleAuth(@Valid @RequestBody AuthGoogle authGoogle) {
+        log.info("POST - googleAuth");
+        return authService.googleAuth(authGoogle);
     }
 
     @PostMapping("/reset")
