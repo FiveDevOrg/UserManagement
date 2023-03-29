@@ -47,53 +47,53 @@ class UserControllerTest {
         when(adapterConfig.getAuthServerUrl()).thenReturn("test");
     }
 
-//    @Test
-//    @SneakyThrows
-//    @WithMockUser
-//    void createUser_shouldSucceed() {
-//        when(userService.createUser(any(), false))
-//                .thenReturn(getMockUser());
-//        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
-//                "test@gmail.com", null, "0740400200", "");
-//
-//        mockMvc.perform(post(getUrl(""))
-//                        .content(mapper.writeValueAsString(mockUser))
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .with(csrf()))
-//                .andExpect(status().isOk());
-//    }
-//
-//    @Test
-//    @SneakyThrows
-//    @WithMockUser
-//    void createUser_shouldFail_whenEmailNotValid() {
-//        when(userService.createUser(any(), false))
-//                .thenReturn(getMockUser());
-//        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
-//                "test", null, "0740400200", "");
-//
-//        mockMvc.perform(post(getUrl(""))
-//                        .content(mapper.writeValueAsString(mockUser))
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .with(csrf()))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    @SneakyThrows
-//    @WithMockUser
-//    void createUser_shouldFail_whenPhoneNotSet() {
-//        when(userService.createUser(any(), false))
-//                .thenReturn(getMockUser());
-//        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
-//                "test@gmail.com", null, null, "");
-//
-//        mockMvc.perform(post(getUrl(""))
-//                        .content(mapper.writeValueAsString(mockUser))
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .with(csrf()))
-//                .andExpect(status().isBadRequest());
-//    }
+    @Test
+    @SneakyThrows
+    @WithMockUser
+    void createUser_shouldSucceed() {
+        when(userService.createUser(any(), any()))
+                .thenReturn(getMockUser());
+        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
+                "test@gmail.com", null, "0740400200", "");
+
+        mockMvc.perform(post(getUrl(""))
+                        .content(mapper.writeValueAsString(mockUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    @WithMockUser
+    void createUser_shouldFail_whenEmailNotValid() {
+        when(userService.createUser(any(), any()))
+                .thenReturn(getMockUser());
+        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
+                "test", null, "0740400200", "");
+
+        mockMvc.perform(post(getUrl(""))
+                        .content(mapper.writeValueAsString(mockUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @SneakyThrows
+    @WithMockUser
+    void createUser_shouldFail_whenPhoneNotSet() {
+        when(userService.createUser(any(), any()))
+                .thenReturn(getMockUser());
+        var mockUser = new UserDetailsInfo("Doe", "Joe", "testPass",
+                "test@gmail.com", null, null, "");
+
+        mockMvc.perform(post(getUrl(""))
+                        .content(mapper.writeValueAsString(mockUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
 
     @Test
     @SneakyThrows
