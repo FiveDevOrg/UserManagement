@@ -98,7 +98,7 @@ public class UserService {
         deleteUserAwsResources(userUuid, userDetails);
         userRepository.deleteById(userDetails.getId());
 
-        return userRepository.findUserDetailsByAccountUuid(userUuid).isPresent();
+        return userRepository.findUserDetailsByAccountUuid(userUuid).isEmpty();
     }
 
     public Boolean checkUserExists(String userName) {
