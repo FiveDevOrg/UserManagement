@@ -39,9 +39,9 @@ public class UserController {
     }
 
     @DeleteMapping
-    public void deleteUser() {
+    public Boolean deleteUser() {
         log.info("DELETE - delete user.");
-        userService.deleteUser(SecurityContextUtil.getUserId());
+        return userService.deleteUser(SecurityContextUtil.getUserId());
     }
 
     @GetMapping("/email/check")

@@ -84,7 +84,7 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(String userUuid) {
+    public Boolean deleteUser(String userUuid) {
         UserDetails userDetails = findUserDetails(userUuid);
         List<Offer> onAuctionOffers = userDetails.getOffers()
                 .stream()
@@ -97,6 +97,8 @@ public class UserService {
         keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
         deleteUserAwsResources(userUuid, userDetails);
         userRepository.deleteById(userDetails.getId());
+
+        return userRepository.findUserDetailsByAccountUuid(userUuid).isPresent();
     }
 
     public Boolean checkUserExists(String userName) {
