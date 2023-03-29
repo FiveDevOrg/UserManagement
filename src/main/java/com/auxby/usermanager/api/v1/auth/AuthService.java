@@ -67,7 +67,7 @@ public class AuthService {
         return true;
     }
 
-    // TODO should enable token exchange for this method
+    // TODO token exchange should be enabled for this method
     public Boolean googleAuthTokenExchange(@Valid AuthGoogle authGoogle) {
         try {
             KeycloakAuthResponse response = webClient.post()
@@ -124,7 +124,8 @@ public class AuthService {
             String email = payload.getEmail();
             String familyName = (String) payload.get("family_name");
             String givenName = (String) payload.get("given_name");
-            return new UserDetailsInfo(familyName, givenName, userPwd, email, new AddressInfo("", ""), "");
+            String userAvatar = (String) payload.get("picture");
+            return new UserDetailsInfo(familyName, givenName, userPwd, email, new AddressInfo("", ""), "", userAvatar);
         } else {
             throw new SignInException("Google failed: Invalid ID token.");
         }

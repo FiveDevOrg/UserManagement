@@ -30,6 +30,8 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 
+import static com.auxby.usermanager.utils.constant.AppConstant.defaultAvailableCoins;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,10 +43,10 @@ public class UserService {
     private final KeycloakService keycloakService;
 
     @Transactional
-    public UserDetailsResponse createUser(UserDetailsInfo userInfo, Boolean isGoogleAuth) {
-        try (Response response = keycloakService.performCreateUser(createUserRepresentation(userInfo, isGoogleAuth))) {
+    public UserDetailsResponse createUser(UserDetailsInfo userInfo, Boolean isEmailVerified) {
+        try (Response response = keycloakService.performCreateUser(createUserRepresentation(userInfo, isEmailVerified))) {
 
-            if (response.getStatus() == HttpStatus.CONFLICT.value() && isGoogleAuth ) {
+            if (response.getStatus() == HttpStatus.CONFLICT.value() && isEmailVerified) {
                 return null;
             }
 
@@ -59,8 +61,12 @@ public class UserService {
                     Address addresses = getUserAddress(userInfo.address());
                     userDetails.addAddress(addresses);
                 }
+                if (userInfo.avatarUrl() != null) {
+                    userDetails.setAvatarUrl(userInfo.avatarUrl());
+                }
+                userDetails.setAvailableCoins(defaultAvailableCoins);
                 UserDetails newUser = userRepository.save(userDetails);
-                if (!isGoogleAuth) {
+                if (!isEmailVerified) {
                     sendEmailVerificationLink(userDetails);
                 }
                 return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
@@ -203,10 +209,10 @@ public class UserService {
                 );
     }
 
-    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo, Boolean isGoogleAuth) {
+    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo, Boolean isEmailVerified) {
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setEnabled(true);
-        userRepresentation.setEmailVerified(isGoogleAuth);
+        userRepresentation.setEmailVerified(isEmailVerified);
         userRepresentation.setEmail(userInfo.email());
         userRepresentation.setUsername(userInfo.email());
         userRepresentation.setLastName(userInfo.lastName());
