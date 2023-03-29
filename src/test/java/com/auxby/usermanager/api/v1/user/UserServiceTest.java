@@ -345,10 +345,10 @@ class UserServiceTest {
     private UserDetailsInfo getMockUserDetails(boolean setAddress) {
         if (setAddress) {
             return new UserDetailsInfo("Joe", "Doe", "testPass",
-                    "test@email.com", new AddressInfo("Suceava", "RO"), "0749599399");
+                    "test@email.com", new AddressInfo("Suceava", "RO"), "0749599399", "");
         } else {
             return new UserDetailsInfo("Joe", "Doe", "testPass",
-                    "test@email.com", null, "0749599399");
+                    "test@email.com", null, "0749599399", "");
         }
     }
 
