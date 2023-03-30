@@ -239,11 +239,11 @@ public class UserService {
         Optional<Address> address = addresses.stream()
                 .findFirst();
         if (address.isEmpty()) {
-            return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, null, phone, user.getAvatarUrl(), user.getAvailableCoins());
+            return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, null, phone, user.getAvatarUrl(), user.getAvailableCoins(), user.getIsGoogleAccount());
 
         }
         AddressInfo addressInfo = new AddressInfo(address.get().getCity(), address.get().getCountry());
-        return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone, user.getAvatarUrl(), user.getAvailableCoins());
+        return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone, user.getAvatarUrl(), user.getAvailableCoins(), user.getIsGoogleAccount());
     }
 
     private String getPhoneNumber(Set<Contact> contacts) {

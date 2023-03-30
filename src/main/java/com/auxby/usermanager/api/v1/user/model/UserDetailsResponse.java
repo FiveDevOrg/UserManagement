@@ -17,5 +17,7 @@ public record UserDetailsResponse(@NotBlank(message = "Last name is mandatory.")
                                   @Pattern(regexp = VALID_PHONE_REGEX, message = "Invalid phone number.")
                                   String phone,
                                   String avatar,
-                                  Integer availableCoins) {
+                                  Integer availableCoins,
+                                  Boolean isGoogleAccount
+) {
 }
