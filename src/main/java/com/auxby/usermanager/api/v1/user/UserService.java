@@ -140,8 +140,10 @@ public class UserService {
     }
 
     public Boolean isGoogleAccount(String email) {
-        Optional<UserDetails> localUser = userRepository.findUserDetailsByUserName(email);
-        return localUser.isPresent() && localUser.get().getIsGoogleAccount();
+        UserDetails userDetails = new UserDetails();
+        userDetails.setIsGoogleAccount(false);
+        UserDetails localUser = userRepository.findUserDetailsByUserName(email).orElse(userDetails);
+        return localUser.getIsGoogleAccount();
     }
 
     public UserDetails findUser(String userName) {
