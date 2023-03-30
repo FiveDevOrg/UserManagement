@@ -5,9 +5,7 @@ import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.user.model.*;
 import com.auxby.usermanager.entity.Address;
 import com.auxby.usermanager.entity.Contact;
-import com.auxby.usermanager.entity.Offer;
 import com.auxby.usermanager.entity.UserDetails;
-import com.auxby.usermanager.exception.ActionNotAllowException;
 import com.auxby.usermanager.exception.ChangePasswordException;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.enums.ContactType;
@@ -86,14 +84,15 @@ public class UserService {
     @Transactional
     public Boolean deleteUser(String userUuid) {
         UserDetails userDetails = findUserDetails(userUuid);
-        List<Offer> onAuctionOffers = userDetails.getOffers()
-                .stream()
-                .filter(o -> o.isAvailable() && o.isOnAuction())
-                .toList();
-        var topBidders = userRepository.getTopBidderIdForOffers();
-        if (!onAuctionOffers.isEmpty() || topBidders.contains(userDetails.getId())) {
-            throw new ActionNotAllowException("Delete account not allow. User has active offers on auction or is top bidder for and offer.");
-        }
+        // TODO At the last discussion we decided to delete the user account without any limitation
+//        List<Offer> onAuctionOffers = userDetails.getOffers()
+//                .stream()
+//                .filter(o -> o.isAvailable() && o.isOnAuction())
+//                .toList();
+//        var topBidders = userRepository.getTopBidderIdForOffers();
+//        if (!onAuctionOffers.isEmpty() || topBidders.contains(userDetails.getId())) {
+//            throw new ActionNotAllowException("Delete account not allow. User has active offers on auction or is top bidder for and offer.");
+//        }
         keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
         deleteUserAwsResources(userUuid, userDetails);
         userRepository.deleteById(userDetails.getId());
