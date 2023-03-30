@@ -7,7 +7,6 @@ import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
 import com.auxby.usermanager.api.v1.auth.model.KeycloakAuthResponse;
 import com.auxby.usermanager.api.v1.user.UserService;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
-import com.auxby.usermanager.api.v1.user.model.UserDetailsResponse;
 import com.auxby.usermanager.config.properties.KeycloakProps;
 import com.auxby.usermanager.entity.UserDetails;
 import com.auxby.usermanager.exception.SignInException;
@@ -100,8 +99,9 @@ public class AuthService {
         }
     }
 
-    private UserDetailsResponse registerGoogleUser(UserDetailsInfo userDetailsInfo) {
-        return userService.createUser(userDetailsInfo, true);
+    private void registerGoogleUser(UserDetailsInfo userDetailsInfo) {
+        if (userService.isGoogleAccount(userDetailsInfo.email())) return;
+        userService.createUser(userDetailsInfo, true);
     }
 
     private UserDetailsInfo getGoogleUserDetails(@Valid AuthGoogle authGoogle) throws GeneralSecurityException, IOException {

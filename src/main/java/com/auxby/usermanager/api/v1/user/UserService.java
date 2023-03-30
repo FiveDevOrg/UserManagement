@@ -43,11 +43,6 @@ public class UserService {
     @Transactional
     public UserDetailsResponse createUser(UserDetailsInfo userInfo, Boolean isEmailVerified) {
         try (Response response = keycloakService.performCreateUser(createUserRepresentation(userInfo, isEmailVerified))) {
-
-            if (response.getStatus() == HttpStatus.CONFLICT.value() && isEmailVerified) {
-                return null;
-            }
-
             if (response.getStatus() != HttpStatus.CREATED.value()) {
                 throw new RegistrationException("User registration failed. " + response.getStatusInfo().getReasonPhrase());
             }
@@ -142,6 +137,11 @@ public class UserService {
         keycloakService.sendResetPasswordLink(userDetails.getAccountUuid());
 
         return true;
+    }
+
+    public Boolean isGoogleAccount(String email) {
+        Optional<UserDetails> localUser = userRepository.findUserDetailsByUserName(email);
+        return localUser.isPresent() && localUser.get().getIsGoogleAccount();
     }
 
     public UserDetails findUser(String userName) {

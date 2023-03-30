@@ -28,6 +28,7 @@ public class UserDetails extends AuxbyBaseEntity {
     private Integer availableCoins;
     private String cui;
     private String type;
+    private Boolean isGoogleAccount;
 
     @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "owner_id")
