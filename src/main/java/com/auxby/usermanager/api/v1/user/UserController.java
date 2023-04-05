@@ -15,8 +15,8 @@ import javax.validation.Valid;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = AppConstant.BASE_V1_URL)
-@CrossOrigin
+@RequestMapping(AppConstant.BASE_V1_URL)
+@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 public class UserController {
 
     private final UserService userService;
