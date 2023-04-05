@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
                 .and()
                 .oauth2ResourceServer().jwt();
-        http.cors().configurationSource(urlBasedCorsConfigurationSource());
+        http.cors();
         return http.build();
     }
 
