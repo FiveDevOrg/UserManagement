@@ -75,7 +75,8 @@ public class SecurityConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
         if (StringUtils.hasText(corsAllowedOrigins)) {
-            List<String> origins = Stream.of(corsAllowedOrigins.split("___", -1)).collect(Collectors.toList());
+            List<String> origins = Stream.of(corsAllowedOrigins.split("___", -1))
+                    .collect(Collectors.toList());
             corsConfiguration.setAllowedOriginPatterns(origins);
             corsConfiguration.setAllowCredentials(true);
         }

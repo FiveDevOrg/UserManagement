@@ -16,6 +16,7 @@ import javax.validation.Valid;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = AppConstant.BASE_V1_URL)
+@CrossOrigin
 public class UserController {
 
     private final UserService userService;
