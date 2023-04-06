@@ -59,6 +59,3 @@ aws:
 stripe:
   secret-key: ${STRIPE_SECRET_KEY}
   public-key: ${STRIPE_PUBLIC_KEY}
-
-cors.allowed.origins: http://localhost:3000___https://auxby-web-offer-manager.herokuapp.com:[*]
-
