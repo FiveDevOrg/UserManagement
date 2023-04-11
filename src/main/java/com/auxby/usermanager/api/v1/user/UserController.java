@@ -15,7 +15,7 @@ import javax.validation.Valid;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = AppConstant.BASE_V1_URL)
+@RequestMapping(AppConstant.BASE_V1_URL)
 public class UserController {
 
     private final UserService userService;
@@ -61,4 +61,7 @@ public class UserController {
         log.info("POST - change user password.");
         return userService.changePassword(changePasswordDto, SecurityContextUtil.getUserId());
     }
+
+    //TODO: New endpoint for user rating : { int : starts , comment: String}
+    // return owner rating on offer details
 }

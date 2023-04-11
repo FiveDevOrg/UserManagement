@@ -3,6 +3,7 @@ package com.auxby.usermanager.config;
 import com.auxby.usermanager.api.v1.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,8 @@ import static com.auxby.usermanager.utils.constant.AppConstant.BASE_V1_URL;
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-
+    @Value("${cors.allowed.origins:}")
+    private String corsAllowedOrigins;
     private final UserService userService;
 
     private static final String[] SWAGGER_WHITELIST = {
@@ -40,7 +42,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors().disable()
+        http.cors().and()
                 .csrf().disable()
                 .authorizeRequests()
                 .antMatchers(SWAGGER_WHITELIST).permitAll()

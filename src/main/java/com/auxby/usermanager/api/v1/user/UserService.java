@@ -58,6 +58,7 @@ public class UserService {
                     userDetails.setAvatarUrl(userInfo.avatarUrl());
                 }
                 userDetails.setAvailableCoins(defaultAvailableCoins);
+                userDetails.setIsGoogleAccount(isEmailVerified);
                 UserDetails newUser = userRepository.save(userDetails);
                 if (!isEmailVerified) {
                     sendEmailVerificationLink(userDetails);

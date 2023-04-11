@@ -150,14 +150,14 @@ public class AuthService {
 
         if (authGoogle.token() == null) {
             GoogleUserInfo googleUserInfo = getUserInfoByAccessToken(authGoogle.accessToken());
-            String userPwd = "Pwd." + googleUserInfo.getId();
+            String userPwd = "Pwd." + googleUserInfo.id();
             return new UserDetailsInfo(
-                    googleUserInfo.getFamily_name(),
-                    googleUserInfo.getGiven_name(),
+                    googleUserInfo.family_name(),
+                    googleUserInfo.given_name(),
                     userPwd,
-                    googleUserInfo.getEmail(),
+                    googleUserInfo.email(),
                     new AddressInfo("", ""), "",
-                    googleUserInfo.getPicture()
+                    googleUserInfo.picture()
             );
         } else {
             return getUserDetailsByIdToken(authGoogle.token());
