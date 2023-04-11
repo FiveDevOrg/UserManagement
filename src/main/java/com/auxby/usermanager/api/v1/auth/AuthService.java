@@ -1,10 +1,7 @@
 package com.auxby.usermanager.api.v1.auth;
 
 import com.auxby.usermanager.api.v1.address.model.AddressInfo;
-import com.auxby.usermanager.api.v1.auth.model.AuthGoogle;
-import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
-import com.auxby.usermanager.api.v1.auth.model.AuthResponse;
-import com.auxby.usermanager.api.v1.auth.model.KeycloakAuthResponse;
+import com.auxby.usermanager.api.v1.auth.model.*;
 import com.auxby.usermanager.api.v1.user.UserService;
 import com.auxby.usermanager.api.v1.user.model.UserDetailsInfo;
 import com.auxby.usermanager.config.properties.KeycloakProps;
@@ -20,6 +17,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -104,7 +102,24 @@ public class AuthService {
         userService.createUser(userDetailsInfo, true);
     }
 
-    private UserDetailsInfo getGoogleUserDetails(@Valid AuthGoogle authGoogle) throws GeneralSecurityException, IOException {
+    public GoogleUserInfo getUserInfoByAccessToken(String accessToken) {
+        try {
+            return webClient.get()
+                    .uri("https://www.googleapis.com/oauth2/v2/userinfo")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .retrieve()
+                    .bodyToMono(GoogleUserInfo.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            throw new SignInException("Google failed: Invalid access token.");
+        }
+    }
+
+    public UserDetailsInfo getUserDetailsByIdToken(String token) throws GeneralSecurityException, IOException {
+        if (token.isEmpty()) {
+            throw new SignInException("Google failed: Invalid ID token.");
+        }
+
         NetHttpTransport transport = new NetHttpTransport();
         JsonFactory jsonFactory = new GsonFactory();
 
@@ -115,7 +130,7 @@ public class AuthService {
                 .setAudience(clientIDs)
                 .build();
 
-        GoogleIdToken idToken = GoogleIdToken.parse(verifier.getJsonFactory(), authGoogle.token());
+        GoogleIdToken idToken = GoogleIdToken.parse(verifier.getJsonFactory(), token);
         boolean tokenIsValid = verifier.verify(idToken);
 
         if (tokenIsValid) {
@@ -129,6 +144,25 @@ public class AuthService {
         } else {
             throw new SignInException("Google failed: Invalid ID token.");
         }
+    }
+
+    private UserDetailsInfo getGoogleUserDetails(@Valid AuthGoogle authGoogle) throws GeneralSecurityException, IOException {
+
+        if (authGoogle.token() == null) {
+            GoogleUserInfo googleUserInfo = getUserInfoByAccessToken(authGoogle.accessToken());
+            String userPwd = "Pwd." + googleUserInfo.getId();
+            return new UserDetailsInfo(
+                    googleUserInfo.getFamily_name(),
+                    googleUserInfo.getGiven_name(),
+                    userPwd,
+                    googleUserInfo.getEmail(),
+                    new AddressInfo("", ""), "",
+                    googleUserInfo.getPicture()
+            );
+        } else {
+            return getUserDetailsByIdToken(authGoogle.token());
+        }
+
     }
 
     private void verifyUserValidateEmailAddress(String email) {

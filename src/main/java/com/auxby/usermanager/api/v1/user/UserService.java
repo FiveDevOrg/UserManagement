@@ -79,15 +79,8 @@ public class UserService {
     @Transactional
     public Boolean deleteUser(String userUuid) {
         UserDetails userDetails = findUserDetails(userUuid);
-        // TODO At the last discussion we decided to delete the user account without any limitation
-//        List<Offer> onAuctionOffers = userDetails.getOffers()
-//                .stream()
-//                .filter(o -> o.isAvailable() && o.isOnAuction())
-//                .toList();
-//        var topBidders = userRepository.getTopBidderIdForOffers();
-//        if (!onAuctionOffers.isEmpty() || topBidders.contains(userDetails.getId())) {
-//            throw new ActionNotAllowException("Delete account not allow. User has active offers on auction or is top bidder for and offer.");
-//        }
+        // TODO notify Interrupted offer
+        // notify all bidder
         keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
         deleteUserAwsResources(userUuid, userDetails);
         userRepository.deleteById(userDetails.getId());
