@@ -62,6 +62,9 @@ public class UserController {
         return userService.changePassword(changePasswordDto, SecurityContextUtil.getUserId());
     }
 
-    //TODO: New endpoint for user rating : { int : starts , comment: String}
-    // return owner rating on offer details
+    @PostMapping("/device-token")
+    public Boolean addDeviceToken(@Valid @RequestBody DeviceTokenDto dto) {
+        log.info("Add device token.");
+        return userService.addDeviceToken(SecurityContextUtil.getUserId(), dto.deviceToken());
+    }
 }

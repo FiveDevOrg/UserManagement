@@ -6,6 +6,7 @@ import com.auxby.usermanager.api.v1.user.model.*;
 import com.auxby.usermanager.entity.Address;
 import com.auxby.usermanager.entity.Contact;
 import com.auxby.usermanager.entity.UserDetails;
+import com.auxby.usermanager.entity.UserDevices;
 import com.auxby.usermanager.exception.ChangePasswordException;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.enums.ContactType;
@@ -39,6 +40,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final AmazonClientService awsService;
     private final KeycloakService keycloakService;
+    private final UserDevicesRepository devicesRepository;
 
     @Transactional
     public UserDetailsResponse createUser(UserDetailsInfo userInfo, Boolean isEmailVerified) {
@@ -60,7 +62,7 @@ public class UserService {
                 userDetails.setAvailableCoins(defaultAvailableCoins);
                 userDetails.setIsGoogleAccount(isEmailVerified);
                 UserDetails newUser = userRepository.save(userDetails);
-                if (!isEmailVerified) {
+                if (Boolean.FALSE.equals(isEmailVerified)) {
                     sendEmailVerificationLink(userDetails);
                 }
                 return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
@@ -198,6 +200,15 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found."));
     }
 
+    @Transactional
+    public Boolean addDeviceToken(String userId, String deviceToken) {
+        var userDevice = new UserDevices();
+        userDevice.setUserId(userId);
+        userDevice.setDeviceKey(deviceToken);
+        devicesRepository.save(userDevice);
+        return true;
+    }
+
     private void deleteUserAwsResources(String userUuid, UserDetails userDetails) {
         awsService.deleteUserAvatar(userUuid);
         userDetails.getOffers()
@@ -321,4 +332,5 @@ public class UserService {
             log.info("Keycloak failed to send verification email link.");
         }
     }
+
 }
