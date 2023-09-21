@@ -201,9 +201,9 @@ public class UserService {
     }
 
     @Transactional
-    public Boolean addDeviceToken(String userId, String deviceToken) {
+    public Boolean addDeviceToken(String userUuid, String deviceToken) {
         var userDevice = new UserDevices();
-        userDevice.setUserId(userId);
+        userDevice.setUserId(findUserDetails(userUuid).getId());
         userDevice.setDeviceKey(deviceToken);
         devicesRepository.save(userDevice);
         return true;

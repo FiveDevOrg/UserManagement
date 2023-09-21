@@ -12,7 +12,7 @@ import javax.persistence.*;
 public class UserDevices extends AuxbyBaseEntity {
 
     private String deviceKey;
-    private String userId;
+    private Integer userId;
 
     @Override
     public boolean equals(Object o) {
