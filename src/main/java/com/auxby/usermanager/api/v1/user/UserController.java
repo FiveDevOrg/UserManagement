@@ -23,7 +23,7 @@ public class UserController {
     @PostMapping
     public UserDetailsResponse createUser(@Valid @RequestBody UserDetailsInfo detailsInfo) {
         log.info("POST - create new user");
-        return userService.createUser(detailsInfo);
+        return userService.createUser(detailsInfo, false);
     }
 
     @GetMapping
@@ -39,9 +39,9 @@ public class UserController {
     }
 
     @DeleteMapping
-    public void deleteUser() {
+    public Boolean deleteUser() {
         log.info("DELETE - delete user.");
-        userService.deleteUser(SecurityContextUtil.getUserId());
+        return userService.deleteUser(SecurityContextUtil.getUserId());
     }
 
     @GetMapping("/email/check")

@@ -5,9 +5,7 @@ import com.auxby.usermanager.api.v1.auth.model.AuthInfo;
 import com.auxby.usermanager.api.v1.user.model.*;
 import com.auxby.usermanager.entity.Address;
 import com.auxby.usermanager.entity.Contact;
-import com.auxby.usermanager.entity.Offer;
 import com.auxby.usermanager.entity.UserDetails;
-import com.auxby.usermanager.exception.ActionNotAllowException;
 import com.auxby.usermanager.exception.ChangePasswordException;
 import com.auxby.usermanager.exception.RegistrationException;
 import com.auxby.usermanager.utils.enums.ContactType;
@@ -30,6 +28,8 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 
+import static com.auxby.usermanager.utils.constant.AppConstant.defaultAvailableCoins;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,8 +41,8 @@ public class UserService {
     private final KeycloakService keycloakService;
 
     @Transactional
-    public UserDetailsResponse createUser(UserDetailsInfo userInfo) {
-        try (Response response = keycloakService.performCreateUser(createUserRepresentation(userInfo))) {
+    public UserDetailsResponse createUser(UserDetailsInfo userInfo, Boolean isEmailVerified) {
+        try (Response response = keycloakService.performCreateUser(createUserRepresentation(userInfo, isEmailVerified))) {
             if (response.getStatus() != HttpStatus.CREATED.value()) {
                 throw new RegistrationException("User registration failed. " + response.getStatusInfo().getReasonPhrase());
             }
@@ -54,8 +54,15 @@ public class UserService {
                     Address addresses = getUserAddress(userInfo.address());
                     userDetails.addAddress(addresses);
                 }
+                if (userInfo.avatarUrl() != null) {
+                    userDetails.setAvatarUrl(userInfo.avatarUrl());
+                }
+                userDetails.setAvailableCoins(defaultAvailableCoins);
+                userDetails.setIsGoogleAccount(isEmailVerified);
                 UserDetails newUser = userRepository.save(userDetails);
-                sendEmailVerificationLink(userDetails);
+                if (!isEmailVerified) {
+                    sendEmailVerificationLink(userDetails);
+                }
                 return mapToUserDetailsInfo(newUser, newUser.getContacts(), newUser.getAddresses());
             } catch (Exception ex) {
                 keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
@@ -71,20 +78,15 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(String userUuid) {
+    public Boolean deleteUser(String userUuid) {
         UserDetails userDetails = findUserDetails(userUuid);
-        List<Offer> onAuctionOffers = userDetails.getOffers()
-                .stream()
-                .filter(o -> o.isAvailable() && o.isOnAuction())
-                .toList();
-        var topBidders = userRepository.getTopBidderIdForOffers();
-        if (!onAuctionOffers.isEmpty() || topBidders.contains(userDetails.getId())) {
-            throw new ActionNotAllowException("Delete account not allow. User has active offers on auction or is top bidder for and offer.");
-        }
-        //TODO: update logic to delete user and clear all the offers - notify bidders the offer was deleted
+        // TODO notify Interrupted offer
+        // notify all bidder
         keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
         deleteUserAwsResources(userUuid, userDetails);
         userRepository.deleteById(userDetails.getId());
+
+        return userRepository.findUserDetailsByAccountUuid(userUuid).isEmpty();
     }
 
     public Boolean checkUserExists(String userName) {
@@ -129,6 +131,13 @@ public class UserService {
         keycloakService.sendResetPasswordLink(userDetails.getAccountUuid());
 
         return true;
+    }
+
+    public Boolean isGoogleAccount(String email) {
+        UserDetails userDetails = new UserDetails();
+        userDetails.setIsGoogleAccount(false);
+        UserDetails localUser = userRepository.findUserDetailsByUserName(email).orElse(userDetails);
+        return localUser.getIsGoogleAccount();
     }
 
     public UserDetails findUser(String userName) {
@@ -197,10 +206,10 @@ public class UserService {
                 );
     }
 
-    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo) {
+    private UserRepresentation createUserRepresentation(UserDetailsInfo userInfo, Boolean isEmailVerified) {
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setEnabled(true);
-        userRepresentation.setEmailVerified(false);
+        userRepresentation.setEmailVerified(isEmailVerified);
         userRepresentation.setEmail(userInfo.email());
         userRepresentation.setUsername(userInfo.email());
         userRepresentation.setLastName(userInfo.lastName());
@@ -226,11 +235,11 @@ public class UserService {
         Optional<Address> address = addresses.stream()
                 .findFirst();
         if (address.isEmpty()) {
-            return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, null, phone, user.getAvatarUrl(), user.getAvailableCoins());
+            return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, null, phone, user.getAvatarUrl(), user.getAvailableCoins(), user.getIsGoogleAccount());
 
         }
         AddressInfo addressInfo = new AddressInfo(address.get().getCity(), address.get().getCountry());
-        return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone, user.getAvatarUrl(), user.getAvailableCoins());
+        return new UserDetailsResponse(user.getLastName(), user.getFirstName(), email, addressInfo, phone, user.getAvatarUrl(), user.getAvailableCoins(), user.getIsGoogleAccount());
     }
 
     private String getPhoneNumber(Set<Contact> contacts) {

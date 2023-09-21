@@ -69,7 +69,7 @@ class UserServiceTest {
                 .addUserRole(anyString());
 
         var request = getMockUserDetails(false);
-        var result = userService.createUser(request);
+        var result = userService.createUser(request, false);
         assertNotNull(result);
         assertSaveIsPerformed(request, false);
         assertCreateUserKeycloakActionsArePerformed(request, "test-uuid");
@@ -95,7 +95,7 @@ class UserServiceTest {
                 .addUserRole(anyString());
 
         var request = getMockUserDetails(true);
-        var result = userService.createUser(request);
+        var result = userService.createUser(request, false);
         assertNotNull(result);
         assertNotNull(result);
         assertSaveIsPerformed(request, true);
@@ -112,7 +112,7 @@ class UserServiceTest {
         when(keycloakService.getKeycloakUser(anyString()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RegistrationException.class, () -> userService.createUser(getMockUserDetails(false)));
+        assertThrows(RegistrationException.class, () -> userService.createUser(getMockUserDetails(false), false));
     }
 
     @Test
@@ -129,7 +129,7 @@ class UserServiceTest {
         when(userRepository.save(any()))
                 .thenThrow(new RuntimeException("Test exception."));
 
-        assertThrows(RegistrationException.class, () -> userService.createUser(getMockUserDetails(false)));
+        assertThrows(RegistrationException.class, () -> userService.createUser(getMockUserDetails(false), false));
         verify(keycloakService, times(1)).deleteKeycloakUser(any());
     }
 
@@ -147,7 +147,7 @@ class UserServiceTest {
         when(keycloakService.performCreateUser(any()))
                 .thenReturn(mockResponse);
 
-        assertThrows(RegistrationException.class, () -> userService.createUser(getMockUserDetails(false)));
+        assertThrows(RegistrationException.class, () -> userService.createUser(getMockUserDetails(false), false));
         verify(userRepository, times(0)).save(any());
     }
 
@@ -345,10 +345,10 @@ class UserServiceTest {
     private UserDetailsInfo getMockUserDetails(boolean setAddress) {
         if (setAddress) {
             return new UserDetailsInfo("Joe", "Doe", "testPass",
-                    "test@email.com", new AddressInfo("Suceava", "RO"), "0749599399");
+                    "test@email.com", new AddressInfo("Suceava", "RO"), "0749599399", "");
         } else {
             return new UserDetailsInfo("Joe", "Doe", "testPass",
-                    "test@email.com", null, "0749599399");
+                    "test@email.com", null, "0749599399", "");
         }
     }
 
