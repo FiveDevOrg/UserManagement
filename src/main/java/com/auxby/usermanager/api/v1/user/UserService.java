@@ -81,6 +81,7 @@ public class UserService {
         if (!onAuctionOffers.isEmpty() || topBidders.contains(userDetails.getId())) {
             throw new ActionNotAllowException("Delete account not allow. User has active offers on auction or is top bidder for and offer.");
         }
+        //TODO: update logic to delete user and clear all the offers - notify bidders the offer was deleted
         keycloakService.deleteKeycloakUser(userDetails.getAccountUuid());
         deleteUserAwsResources(userUuid, userDetails);
         userRepository.deleteById(userDetails.getId());
