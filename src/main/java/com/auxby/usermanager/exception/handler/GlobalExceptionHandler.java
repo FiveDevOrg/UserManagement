@@ -58,7 +58,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = SignInException.class)
     protected ResponseEntity<ExceptionResponse> handleSignInException(SignInException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        return ResponseEntity.status(CustomHttpStatus.BAD_CREDENTIALS.getCode())
                 .body(new ExceptionResponse(ex.getMessage()));
     }
 
