@@ -19,7 +19,7 @@ public class MonitoringFilter implements Filter {
     public void doFilter(ServletRequest request,
                          ServletResponse response,
                          FilterChain chain) throws ServletException, IOException {
-        String uuid = SecurityContextUtil.getUserId();
+        String uuid = SecurityContextUtil.getUsername();
         if (StringUtils.hasValue(uuid)) {
             userService.updateUserLastSeen(uuid);
         }

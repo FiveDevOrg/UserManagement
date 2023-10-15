@@ -13,29 +13,13 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER}
-          jwk-set-uri: ${KEYCLOAK_JWKS}
   servlet:
     multipart:
       max-file-size: 5MB
       max-request-size: 6MB
-eureka:
-  instance:
-    instance-id: ${spring.application.name}:${random.uuid)}
-    hostname: ${USER_MANAGER_DOMAIN_NAME}
-    nonSecurePort: 80
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL}/eureka/
-  password: ${EUREKA_USER_PASSWORD}
 security:
   user:
     password: ${eureka.password}
-
 management:
   endpoints:
     web:
@@ -44,18 +28,19 @@ management:
 springdoc:
   swagger-ui:
     operations-sorter: method
-keycloak-client:
-  url: ${KEYCLOAK_SERVER_URL}
-  realm: ${KEYCLOAK_REALM}
-  client-id: ${KEYCLOAK_CLIENT_ID}
-  client-secret: ${KEYCLOAK_CLIENT_SECRET}
-  auth-url: ${KEYCLOAK_AUTH_URL}
 aws:
   region: ${AWS_REGION}
   bucket: ${AWS_BUCKET_NAME}
   accessKey: ${AWS_ACCESS_KEY}
   secretKey: ${AWS_SECRET_KEY}
   endpoint: ${AWS_ENDPOINT}
+
 stripe:
   secret-key: ${STRIPE_SECRET_KEY}
   public-key: ${STRIPE_PUBLIC_KEY}
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: ${JWT_EXPIRATION}

@@ -26,12 +26,12 @@ public class PaymentController {
     @PostMapping("/create-payment-intent")
     public PaymentResponse createPaymentIntent(@Valid @RequestBody PaymentRequest paymentRequest) throws StripeException {
         log.info("POST - trigger a payment.");
-        return stripePaymentService.createPaymentIntent(paymentRequest, SecurityContextUtil.getUserId());
+        return stripePaymentService.createPaymentIntent(paymentRequest, SecurityContextUtil.getUsername());
     }
 
     @PostMapping("/payment-confirmed")
     public void addPaymentBundleToUser(@Valid @RequestBody ConfirmedPaymentRequest confirmedPaymentRequest) {
         log.info("POST - add bundle resources to user after payment succeeded.");
-        stripePaymentService.confirmedPayment(confirmedPaymentRequest, SecurityContextUtil.getUserId());
+        stripePaymentService.confirmedPayment(confirmedPaymentRequest, SecurityContextUtil.getUsername());
     }
 }

@@ -21,27 +21,30 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
+    @Deprecated(forRemoval = true, since = "15/10/2003")
     public UserDetailsResponse createUser(@Valid @RequestBody UserDetailsInfo detailsInfo) {
         log.info("POST - create new user");
-        return userService.createUser(detailsInfo, false);
+        //TODO: call new auxby platform
+        return null;
     }
 
     @GetMapping
     public UserDetailsResponse getUserInfo() {
         log.info("GET - get user.");
-        return userService.getUser(SecurityContextUtil.getUserId());
+        return userService.getUser(SecurityContextUtil.getUsername());
     }
 
-    @PutMapping()
+    @PutMapping
     public UserDetailsResponse updateUser(@Valid @RequestBody UpdateUserInfo userDto) {
         log.info("PUT - update user profile.");
-        return userService.updateUser(SecurityContextUtil.getUserId(), userDto);
+        return userService.updateUser(SecurityContextUtil.getUsername(), userDto);
     }
 
     @DeleteMapping
     public Boolean deleteUser() {
         log.info("DELETE - delete user.");
-        return userService.deleteUser(SecurityContextUtil.getUserId());
+        //TODO: call new auxby platform
+        return true;
     }
 
     @GetMapping("/email/check")
@@ -53,18 +56,19 @@ public class UserController {
     @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UploadAvatarResponse updateAvatar(@Parameter(description = "Avatar file.") @RequestPart MultipartFile file) {
         log.info("POST - update user avatar.");
-        return userService.updateUserAvatar(file, SecurityContextUtil.getUserId());
+        return userService.updateUserAvatar(file, SecurityContextUtil.getUsername());
     }
 
-    @PutMapping(value = "/password")
+    @PutMapping("/password")
     public Boolean changeUserPassword(@Valid @RequestBody ChangePasswordDto changePasswordDto) {
         log.info("POST - change user password.");
-        return userService.changePassword(changePasswordDto, SecurityContextUtil.getUserId());
+        //TODO: call new auxby platform
+        return userService.changePassword(changePasswordDto, SecurityContextUtil.getUsername());
     }
 
     @PostMapping("/device-token")
     public Boolean addDeviceToken(@Valid @RequestBody DeviceTokenDto dto) {
         log.info("Add device token.");
-        return userService.addDeviceToken(SecurityContextUtil.getUserId(), dto.deviceToken());
+        return userService.addDeviceToken(SecurityContextUtil.getUsername(), dto.deviceToken());
     }
 }

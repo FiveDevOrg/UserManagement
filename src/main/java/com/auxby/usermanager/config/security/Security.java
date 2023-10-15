@@ -1,6 +1,7 @@
-package com.auxby.usermanager.config;
+package com.auxby.usermanager.config.security;
 
 import com.auxby.usermanager.api.v1.user.UserService;
+import com.auxby.usermanager.config.MonitoringFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,9 +9,12 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static com.auxby.usermanager.utils.constant.AppConstant.BASE_V1_URL;
 
@@ -18,10 +22,10 @@ import static com.auxby.usermanager.utils.constant.AppConstant.BASE_V1_URL;
 @Configuration
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
-    @Value("${cors.allowed.origins:}")
-    private String corsAllowedOrigins;
+public class Security {
     private final UserService userService;
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final AuthenticationProvider authenticationProvider;
 
     private static final String[] SWAGGER_WHITELIST = {
             "/v3/api-docs/**",
@@ -50,7 +54,11 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST, POST_API_WHITELIST).permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .oauth2ResourceServer().jwt();
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

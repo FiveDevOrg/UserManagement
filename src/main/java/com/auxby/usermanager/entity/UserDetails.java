@@ -22,7 +22,8 @@ public class UserDetails extends AuxbyBaseEntity {
     private String gender;
     private String lastName;
     private String firstName;
-    private String accountUuid;
+    private String userId;
+    @Column(name = "username")
     private String userName;
     private String avatarUrl;
     private Integer availableCoins;
